@@ -1,12 +1,16 @@
 package scraper
 
 import (
+	"archive/zip"
 	"bufio"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // create a function to scrape an index given a year and quarter
@@ -16,6 +20,9 @@ import (
 
 const EDGAR_FULL_INDEX_URL_PREFIX = "http://www.sec.gov/Archives/edgar/full-index/"
 const INDEX_FILE_NAME = "/xbrl.idx"
+
+const SEC_EDGAR_BASE_URL = "http://www.sec.gov/Archives/"
+const XBRL_ZIP_SUFFIX = "-xbrl.zip"
 
 type EdgarFullIndexScraper struct {
 	year, quarter int
@@ -41,7 +48,6 @@ func (efis *EdgarFullIndexScraper) ScrapeEdgarQuarterlyIndex() {
 	} else if getResp.StatusCode != 200 {
 		log.Error("Received status code <", getResp.Status, "> for url: ", indexUrl)
 	} else {
-		log.Println("@@@ Success!", indexUrl, getResp)
 		defer getResp.Body.Close()
 
 		efis.ParseIndexFile(getResp.Body)
@@ -83,15 +89,23 @@ func (efis *EdgarFullIndexScraper) ParseIndexFile(fileReader io.ReadCloser) {
 				filename := elements[4]
 
 				log.Println("CIK: ", cik, " Company Name: ", companyName, " Form type: ", formType, "  Date Filed: ", dateFiled, "  FileName: ", filename)
+
+				efis.GetXbrl(filename)
+				// TODO - temporary hack for testing
+				break
 			}
 		}
 	}
 }
 
-/*
+// The full index provides links to txt files. We want to convert these to retrieve the corresponding zip of xbrl files 
+// and extract the main xbrl file.
+func (efis *EdgarFullIndexScraper) GetXbrl(edgarFilename string) {
+	if !strings.Contains(edgarFilename, ".txt") {
+		log.Error("Unexpected file type: ", edgarFilename)
+		return
+	}
 
-func getXbrl(edgarFilename string) {
-    // TODO log if not a txt file
     parts := strings.Split(edgarFilename, "/")
     baseName := strings.Trim(parts[3], ".txt")
     preBase := strings.Replace(baseName, "-", "", -1)
@@ -99,38 +113,68 @@ func getXbrl(edgarFilename string) {
 
     fullUrl := SEC_EDGAR_BASE_URL + strings.Join(parts, "/")
 
-    logger.Println("getting xbrl from ", fullUrl)
+    log.Println("Getting xbrl zip from ", fullUrl)
 
     getResp, getErr := http.Get(fullUrl)
 
     if getErr != nil {
-        logger.Println("Failed get to: ", fullUrl)
+        log.Error("Failed get to: ", fullUrl)
     } else {
         defer getResp.Body.Close()
 
         data, readErr := ioutil.ReadAll(getResp.Body)
 
         if readErr != nil {
-            logger.Println("Failed to read")
+            log.Error("Failed to read")
         } else {
-            outputFileName := time.Now().String() + baseName + XBRL_ZIP_SUFFIX
-            ioutil.WriteFile(outputFileName, data, 0777)
+            outputFileName := strconv.Itoa(int(time.Now().Unix()) )+ baseName + XBRL_ZIP_SUFFIX
+            // TODO configure a data directory
+            writeErr := ioutil.WriteFile(outputFileName, data, 0777)
 
-            zipReader, zipErr := zip.OpenReader(outputFileName)
-            if zipErr != nil {
-                logger.Println("Failed to open zip: ", outputFileName)
+            
+            if writeErr != nil {
+            	log.Error("Failed to write file: ", writeErr)
             } else {
-                defer zipReader.Close()
-
-                for _, zippedFile := range zipReader.File {
-                    zippedFileName := zippedFile.Name
-                    isMatch,_ := regexp.MatchString("[a-z]+-[0-9]{8}.xml", zippedFileName)
-                    if isMatch {
-                        logger.Println("Found zipped file: ", zippedFileName ) 
-                    }       
-                }
+            	efis.getXbrlFromZip(outputFileName)
             }
         }   
     }
 }
-*/
+
+func (efis *EdgarFullIndexScraper) getXbrlFromZip(zipFileName string) {
+	zipReader, zipErr := zip.OpenReader(zipFileName)
+
+	if zipErr != nil {
+        log.Error("Failed to open zip: ", zipFileName, " with error: ", zipErr)
+    } else {
+        defer zipReader.Close()
+
+        for _, zippedFile := range zipReader.File {
+            zippedFileName := zippedFile.Name
+            isMatch,_ := regexp.MatchString("[a-z]+-[0-9]{8}.xml", zippedFileName)
+            if isMatch {
+                log.Println("Found zipped file: ", zippedFileName ) 
+
+                xbrlFile, xbrlErr := zippedFile.Open()
+
+                if xbrlErr != nil {
+                	log.Error("Failed to open zip file")
+                } else {
+                	data, readErr := ioutil.ReadAll(xbrlFile)
+                	if readErr != nil {
+			            log.Error("Failed to read")
+			        } else {
+			        	writeErr := ioutil.WriteFile(zippedFileName, data, 0777)
+
+			        	if writeErr != nil {
+			            	log.Error("Failed to write file: ", writeErr)
+			            }
+			        }
+                }
+
+                // we don't care about the other stuff
+                break
+            }       
+        }
+    }
+}
