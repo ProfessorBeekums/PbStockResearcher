@@ -2,6 +2,7 @@ package parser
 
 import (
 	"bufio"
+	"container/list"
 	"encoding/xml"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
 	"os"
@@ -28,10 +29,14 @@ func (frp *FinancialReportParser) Parse() {
 
 		decoder := xml.NewDecoder(fileReader) 
 
-	    parseData := false
+	    // parseData := false
 
-	    // TODO hack
-	    parseContext := false
+	    // // TODO hack
+	    // parseContext := false
+
+	    var parentElement string = ""
+	    elementList := list.New()
+	    parserMap := make(map[string]*list.List)
 
 		for { 
 		    // Read tokens from the XML document in a stream. 
@@ -56,34 +61,57 @@ func (frp *FinancialReportParser) Parse() {
 
 			switch element := t.(type) { 
 			    case xml.StartElement: 
-			    	log.Println("start tagf:", element.Name.Local)
 			    // TODO there are going to be many versions of this. need to parse out contexts and figure out which ones are ok based on the start date. 
 			    // note that multiple contexts can have the same start and end date. we also want the latest quarter, not 6 month period
-			    	if element.Name.Local == "Revenues" || element.Name.Local == "endDate" || element.Name.Local == "startDate" {
-			    		parseData = true
+			    	// if element.Name.Local == "Revenues" || element.Name.Local == "endDate" || element.Name.Local == "startDate" {
+			    	// 	parseData = true
+			    	// }
+
+			    	// for _, attribute := range element.Attr {
+			    	// 	if attribute.Name.Local == "id" && attribute.Value == "Context_6ME__30-Sep-2013_FinancingReceivableRecordedInvestmentByClassOfFinancingReceivableAxis_ConsumerLoanMember" {
+			    	// 		log.Println("parsing a context start")
+			    	// 		parseContext = true
+			    	// 	}
+			    	// }
+
+			    	// if parseData {
+				    // 	log.Println("Space:",element.Name.Space)
+				    	// log.Println("LOcal:", element.Name.Local)
+				    // 	log.Println("Attr", element.Attr)
+			    	// }
+
+			    	if element.Name.Local == "xbrl" {
+			    		//no-op
+			    	} else if parentElement == "" {
+			    		parentElement = element.Name.Local
+			    		log.Println("Savign poarent ", parentElement)
+			    	} else {
+			    		log.Println("Pushing parent; ", parentElement, element.Name.Local)
+			    		elementList.PushBack(element)
 			    	}
 
-			    	for _, attribute := range element.Attr {
-			    		if attribute.Name.Local == "id" && attribute.Value == "Context_6ME__30-Sep-2013_FinancingReceivableRecordedInvestmentByClassOfFinancingReceivableAxis_ConsumerLoanMember" {
-			    			log.Println("parsing a context start")
-			    			parseContext = true
-			    		}
-			    	}
-
-			    	if parseData {
-				    	log.Println("Space:",element.Name.Space)
-				    	log.Println("LOcal:", element.Name.Local)
-				    	log.Println("Attr", element.Attr)
-			    	}
 			    	break
 			    case xml.CharData:
-			    	if parseData {
-			    		log.Println(string(element))
-			    	}
+			    		log.Println("Pushing parent; ", parentElement, string(element))
+			    	elementList.PushBack(string(element))
 			    	break
 			    case xml.EndElement:
-			    	log.Println(parseContext)
-			    	return
+			    	if element.Name.Local == "xbrl" {
+			    		//no-op
+			    	} else if element.Name.Local == parentElement {
+			    		if parserMap[parentElement] == nil {
+			    			parserMap[parentElement] = list.New()
+			    		}
+
+			    		log.Println("Adding element list ", elementList)
+			    		parserMap[parentElement].PushBack(elementList)
+
+			    		parentElement = ""
+			    		elementList = list.New()
+			    	} else {
+			    		log.Println("Pushing parent; ", parentElement, element.Name.Local)
+			    		elementList.PushBack(element)
+			    	}
 			    	// if parseContext && element.Name.Local == "context" {
 			    	// 	log.Println("End context")
 			    	// 	parseContext = false
@@ -92,8 +120,10 @@ func (frp *FinancialReportParser) Parse() {
 			    	// 	log.Println("end parsig: ", element.Name.Local)
 			    	// }
 			    	// parseData = false
-			    	// break
+			    	break
 			}
 		}
+
+		log.Println("Our parser map is ", parserMap)
 	}
 }
