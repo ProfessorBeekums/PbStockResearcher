@@ -145,7 +145,7 @@ func (efis *EdgarFullIndexScraper) getXbrlFromZip(zipFileName string) {
 	zipReader, zipErr := zip.OpenReader(zipFileName)
 
 	if zipErr != nil {
-        log.Error("Failed to open zip: ", zipFileName, " with error: ", zipErr)
+		log.Error("Failed to open zip: ", zipFileName, " with error: ", zipErr)
     } else {
         defer zipReader.Close()
 
