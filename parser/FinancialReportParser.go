@@ -4,17 +4,23 @@ import (
 	"bufio"
 	"container/list"
 	"encoding/xml"
+	"github.com/ProfessorBeekums/PbStockResearcher/filings"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
 	"os"
 	"strings"
+	"strconv"
 	"time"
 )
+
+const contextTag = "context"
+const revenueTag = "Revenues"
 
 const shortFormDate = "2006-01-02"
 
 type FinancialReportParser struct {
 	// TODO add in year/quarter so we can verify that we are parsing the right file
 	currentContext, xbrlFileName string
+	financialReport *filings.FinancialReport
 }
 
 type XbrlElementParser func(frp *FinancialReportParser, listOfElementLists *list.List) 
@@ -23,10 +29,18 @@ var parseFunctionMap map[string]XbrlElementParser
 
 func NewFinancialReportParser(xbrlFileName string) *FinancialReportParser {
 	parseFunctionMap = map[string]XbrlElementParser {
-		"context" : parseContext,
+		contextTag : parseContext,
+		revenueTag : parseRevenue,
 	}
 
-	return &FinancialReportParser{xbrlFileName: xbrlFileName}
+	parser := &FinancialReportParser{xbrlFileName: xbrlFileName}
+	parser.financialReport = &filings.FinancialReport{}
+
+	return parser
+}
+
+func (frp * FinancialReportParser) GetFinancialReport() *filings.FinancialReport {
+	return frp.financialReport
 }
 
 func (frp *FinancialReportParser) Parse() {
@@ -49,9 +63,8 @@ func (frp *FinancialReportParser) Parse() {
 		        break 
 		    }
 
-		    // TODO break out the map builder into a different function and call it here
-		    // TODO pseudo code for what this should look like:
 		    /*
+		    Pseudo code for the algorithm below:
 				check if parent is xbrl, ignore if it is
 				if not xbrl, save the start element name
 				save every element: start, chardata, and endelement, to a new list (DON'T use map, order is not guaranteed)
@@ -99,7 +112,7 @@ func (frp *FinancialReportParser) Parse() {
 			    		// log.Println("@@@ Pushing parent; ", parentElement, element.Name.Local)
 			    		elementList.PushBack(element)
 			    	}
-			    	
+
 			    	break
 			}
 		}
@@ -107,7 +120,7 @@ func (frp *FinancialReportParser) Parse() {
 		log.Println("Our parser map is ", parserMap)
 
 		// context must be parsed first!
-		contextList, contextExists := parserMap["context"]
+		contextList, contextExists := parserMap[contextTag]
 
 		if !contextExists {
 			// don't bother doing anything else
@@ -117,9 +130,11 @@ func (frp *FinancialReportParser) Parse() {
 		}
 
 		parseContext(frp, contextList)
-		delete(parserMap, "context")
+		delete(parserMap, contextTag)
 
 		for mainElementName, list := range parserMap {
+
+				// log.Println("@@@ checking function: ", mainElementName)
 			parseFunction, funcExists := parseFunctionMap[mainElementName]
 
 			if funcExists {
@@ -129,13 +144,59 @@ func (frp *FinancialReportParser) Parse() {
 		}
 
 		log.Println("@@@ context used for this quarter is ", frp.currentContext)
+		log.Println("@@@ revenue for this quarter is ", frp.financialReport.Revenue)
+	}
+}
+
+func verifyContext(correctContext string, attributes []xml.Attr) bool {
+	for _, attribute := range attributes {
+		if attribute.Name.Local == "contextRef" {
+			if attribute.Value == correctContext {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func parseRevenue(frp *FinancialReportParser, listOfElementLists *list.List) {
+	for listElement := listOfElementLists.Front(); listElement != nil; listElement = listElement.Next() {
+		elementList := listElement.Value.(*list.List)
+
+		isCorrectContext := false
+
+		for elementListElement := elementList.Front(); elementListElement != nil; elementListElement = elementListElement.Next() {
+			xmlElement := elementListElement.Value
+
+			switch element := xmlElement.(type) { 
+				case xml.StartElement: 
+					if element.Name.Local == revenueTag {
+						isCorrectContext = verifyContext(frp.currentContext, element.Attr)
+					}
+
+			    	break
+			    case string:
+			    	if isCorrectContext {
+			    		revStr := strings.TrimSpace(element)
+			    		revenue, revErr := strconv.ParseInt(revStr, 10, 64)
+
+			    		if revErr != nil {
+			    			log.Error("Failed parsing revenue number into an int due to error: ", revErr)
+			    		} else {
+			    			frp.financialReport.Revenue = revenue
+			    		}
+			    	}
+
+			    	break
+			}
+		}
 	}
 }
 
 func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 	// TODO I would love a way to not have to copy/paste this loop and switch statement in every parsing function...
-	// var startParsed bool = false
-	// var currentStart string
+
 	var currentContext, latestContext string
 	var latestEndDate time.Time
 
@@ -154,7 +215,7 @@ func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 			switch element := xmlElement.(type) { 
 				case xml.StartElement: 
 				// log.Println("@@@ going to start parse context: ", element.Name.Local)
-					if element.Name.Local == "context" {
+					if element.Name.Local == contextTag {
 						for _, attribute := range element.Attr {
 				    		if attribute.Name.Local == "id" {
 				    			currentContext = attribute.Value
