@@ -7,8 +7,8 @@ import (
 	"github.com/ProfessorBeekums/PbStockResearcher/filings"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -20,17 +20,17 @@ const shortFormDate = "2006-01-02"
 type FinancialReportParser struct {
 	// TODO add in year/quarter so we can verify that we are parsing the right file
 	currentContext, xbrlFileName string
-	financialReport *filings.FinancialReport
+	financialReport              *filings.FinancialReport
 }
 
-type XbrlElementParser func(frp *FinancialReportParser, listOfElementLists *list.List) 
+type XbrlElementParser func(frp *FinancialReportParser, listOfElementLists *list.List)
 
-var parseFunctionMap map[string]XbrlElementParser 
+var parseFunctionMap map[string]XbrlElementParser
 
 func NewFinancialReportParser(xbrlFileName string) *FinancialReportParser {
-	parseFunctionMap = map[string]XbrlElementParser {
-		contextTag : parseContext,
-		revenueTag : parseRevenue,
+	parseFunctionMap = map[string]XbrlElementParser{
+		contextTag: parseContext,
+		revenueTag: parseRevenue,
 	}
 
 	parser := &FinancialReportParser{xbrlFileName: xbrlFileName}
@@ -39,7 +39,7 @@ func NewFinancialReportParser(xbrlFileName string) *FinancialReportParser {
 	return parser
 }
 
-func (frp * FinancialReportParser) GetFinancialReport() *filings.FinancialReport {
+func (frp *FinancialReportParser) GetFinancialReport() *filings.FinancialReport {
 	return frp.financialReport
 }
 
@@ -50,70 +50,70 @@ func (frp *FinancialReportParser) Parse() {
 	if fileErr != nil {
 		log.Println("Failed to read file")
 	} else {
-		decoder := xml.NewDecoder(fileReader) 
+		decoder := xml.NewDecoder(fileReader)
 
-	    var parentElement string = ""
-	    elementList := list.New()
-	    parserMap := make(map[string]*list.List)
+		var parentElement string = ""
+		elementList := list.New()
+		parserMap := make(map[string]*list.List)
 
-		for { 
-		    // Read tokens from the XML document in a stream. 
-		    t, _ := decoder.Token() 
-		    if t == nil { 
-		        break 
-		    }
+		for {
+			// Read tokens from the XML document in a stream.
+			t, _ := decoder.Token()
+			if t == nil {
+				break
+			}
 
-		    /*
-		    Pseudo code for the algorithm below:
-				check if parent is xbrl, ignore if it is
-				if not xbrl, save the start element name
-				save every element: start, chardata, and endelement, to a new list (DON'T use map, order is not guaranteed)
-				if you encounter an end element that matches the start element, add the element list to the object parser for that element
+			/*
+				    Pseudo code for the algorithm below:
+						check if parent is xbrl, ignore if it is
+						if not xbrl, save the start element name
+						save every element: start, chardata, and endelement, to a new list (DON'T use map, order is not guaranteed)
+						if you encounter an end element that matches the start element, add the element list to the object parser for that element
 
-				now we have a map of elements with their variables. 
-				parse all contexts first so that we know which one we want. store that in the FinancialReportParser
+						now we have a map of elements with their variables.
+						parse all contexts first so that we know which one we want. store that in the FinancialReportParser
 
-				parse every other element
-		    */
+						parse every other element
+			*/
 
-			switch element := t.(type) { 
-			    case xml.StartElement: 
-			    	if element.Name.Local == "xbrl" {
-			    		//no-op
-			    	} else if parentElement == "" {
-			    		parentElement = element.Name.Local
-			    		// log.Println("@@@ Savign poarent ", parentElement)
-			    		// include the first parent element so we have access to the attributes
-			    		elementList.PushBack(element)
-			    	} else {
-			    		// log.Println("@@@ Pushing parent; ", parentElement, element.Name.Local)
-			    		elementList.PushBack(element)
-			    	}
+			switch element := t.(type) {
+			case xml.StartElement:
+				if element.Name.Local == "xbrl" {
+					//no-op
+				} else if parentElement == "" {
+					parentElement = element.Name.Local
+					// log.Println("@@@ Savign poarent ", parentElement)
+					// include the first parent element so we have access to the attributes
+					elementList.PushBack(element)
+				} else {
+					// log.Println("@@@ Pushing parent; ", parentElement, element.Name.Local)
+					elementList.PushBack(element)
+				}
 
-			    	break
-			    case xml.CharData:
-			    		// log.Println("@@@ Pushing parent; ", parentElement, string(element))
-			    	elementList.PushBack(string(element))
-			    	break
-			    case xml.EndElement:
-			    	if element.Name.Local == "xbrl" {
-			    		//no-op
-			    	} else if element.Name.Local == parentElement {
-			    		if parserMap[parentElement] == nil {
-			    			parserMap[parentElement] = list.New()
-			    		}
+				break
+			case xml.CharData:
+				// log.Println("@@@ Pushing parent; ", parentElement, string(element))
+				elementList.PushBack(string(element))
+				break
+			case xml.EndElement:
+				if element.Name.Local == "xbrl" {
+					//no-op
+				} else if element.Name.Local == parentElement {
+					if parserMap[parentElement] == nil {
+						parserMap[parentElement] = list.New()
+					}
 
-			    		// log.Println("@@@ Adding element list ", elementList)
-			    		parserMap[parentElement].PushBack(elementList)
+					// log.Println("@@@ Adding element list ", elementList)
+					parserMap[parentElement].PushBack(elementList)
 
-			    		parentElement = ""
-			    		elementList = list.New()
-			    	} else {
-			    		// log.Println("@@@ Pushing parent; ", parentElement, element.Name.Local)
-			    		elementList.PushBack(element)
-			    	}
+					parentElement = ""
+					elementList = list.New()
+				} else {
+					// log.Println("@@@ Pushing parent; ", parentElement, element.Name.Local)
+					elementList.PushBack(element)
+				}
 
-			    	break
+				break
 			}
 		}
 
@@ -134,7 +134,7 @@ func (frp *FinancialReportParser) Parse() {
 
 		for mainElementName, list := range parserMap {
 
-				// log.Println("@@@ checking function: ", mainElementName)
+			// log.Println("@@@ checking function: ", mainElementName)
 			parseFunction, funcExists := parseFunctionMap[mainElementName]
 
 			if funcExists {
@@ -169,26 +169,26 @@ func parseRevenue(frp *FinancialReportParser, listOfElementLists *list.List) {
 		for elementListElement := elementList.Front(); elementListElement != nil; elementListElement = elementListElement.Next() {
 			xmlElement := elementListElement.Value
 
-			switch element := xmlElement.(type) { 
-				case xml.StartElement: 
-					if element.Name.Local == revenueTag {
-						isCorrectContext = verifyContext(frp.currentContext, element.Attr)
+			switch element := xmlElement.(type) {
+			case xml.StartElement:
+				if element.Name.Local == revenueTag {
+					isCorrectContext = verifyContext(frp.currentContext, element.Attr)
+				}
+
+				break
+			case string:
+				if isCorrectContext {
+					revStr := strings.TrimSpace(element)
+					revenue, revErr := strconv.ParseInt(revStr, 10, 64)
+
+					if revErr != nil {
+						log.Error("Failed parsing revenue number into an int due to error: ", revErr)
+					} else {
+						frp.financialReport.Revenue = revenue
 					}
+				}
 
-			    	break
-			    case string:
-			    	if isCorrectContext {
-			    		revStr := strings.TrimSpace(element)
-			    		revenue, revErr := strconv.ParseInt(revStr, 10, 64)
-
-			    		if revErr != nil {
-			    			log.Error("Failed parsing revenue number into an int due to error: ", revErr)
-			    		} else {
-			    			frp.financialReport.Revenue = revenue
-			    		}
-			    	}
-
-			    	break
+				break
 			}
 		}
 	}
@@ -212,43 +212,43 @@ func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 		for elementListElement := elementList.Front(); elementListElement != nil; elementListElement = elementListElement.Next() {
 			xmlElement := elementListElement.Value
 
-			switch element := xmlElement.(type) { 
-				case xml.StartElement: 
+			switch element := xmlElement.(type) {
+			case xml.StartElement:
 				// log.Println("@@@ going to start parse context: ", element.Name.Local)
-					if element.Name.Local == contextTag {
-						for _, attribute := range element.Attr {
-				    		if attribute.Name.Local == "id" {
-				    			currentContext = attribute.Value
+				if element.Name.Local == contextTag {
+					for _, attribute := range element.Attr {
+						if attribute.Name.Local == "id" {
+							currentContext = attribute.Value
 
-				    			// log.Println("@@@ setting current contest to: ", currentContext)
+							// log.Println("@@@ setting current contest to: ", currentContext)
 
-				    			break
-				    		}
-				    	}
-					} else if element.Name.Local == "startDate" {
-						parsingStartDate = true
-					} else if element.Name.Local == "endDate" {
-						parsingEndDate = true
+							break
+						}
 					}
-			    	break
-			    case string:
-			    	content := strings.TrimSpace(element)
-			    	// log.Println("@@@ going to content parse context: ", content)
-			    	if parsingStartDate {
-			    		startDate, _ = time.Parse(shortFormDate, content)
-			    	} else if parsingEndDate {
-			    		endDate,_ = time.Parse(shortFormDate, content)
-			    	}
-			    	break
-			    case xml.EndElement:
-					// log.Println("@@@ going to end parse context: ", element.Name.Local)
-					parsingStartDate = false
-					parsingEndDate = false
-			    	break
+				} else if element.Name.Local == "startDate" {
+					parsingStartDate = true
+				} else if element.Name.Local == "endDate" {
+					parsingEndDate = true
+				}
+				break
+			case string:
+				content := strings.TrimSpace(element)
+				// log.Println("@@@ going to content parse context: ", content)
+				if parsingStartDate {
+					startDate, _ = time.Parse(shortFormDate, content)
+				} else if parsingEndDate {
+					endDate, _ = time.Parse(shortFormDate, content)
+				}
+				break
+			case xml.EndElement:
+				// log.Println("@@@ going to end parse context: ", element.Name.Local)
+				parsingStartDate = false
+				parsingEndDate = false
+				break
 			}
 		}
 
-		log.Println("@@@ for contexnt ", currentContext, " we have start ", startDate, " and end ", endDate )
+		log.Println("@@@ for contexnt ", currentContext, " we have start ", startDate, " and end ", endDate)
 
 		periodLengthInMonths := int(endDate.Month()) - int(startDate.Month())
 
