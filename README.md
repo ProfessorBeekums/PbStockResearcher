@@ -33,12 +33,15 @@ Usage:
 Currently the project is a collection of libraries. There is nothing tying it all together yet.
 
 To scrape a quarterly index:
+```go
     scraper := scraper.NewEdgarFullIndexScraper(2013, 1)
     scraper.ScrapeEdgarQuarterlyIndex()
-
+```
 This will retrieve data for the 1st quarter of 2013. NOTE: data before fourth quarter of 2010 is potentially unreliable.
 
 To parse data for an xbrl file retrieved from the scraper:
+```go
     frp := parser.NewFinancialReportParser("testData.xml")
     frp.Parse()
     report := frp.GetFinancialReport()
+```
