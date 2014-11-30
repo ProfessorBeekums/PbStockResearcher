@@ -52,72 +52,8 @@ func (frp *FinancialReportParser) Parse() {
 	} else {
 		decoder := xml.NewDecoder(fileReader)
 
-		var parentElement string = ""
-		elementList := list.New()
-		parserMap := make(map[string]*list.List)
-
-		for {
-			// Read tokens from the XML document in a stream.
-			t, _ := decoder.Token()
-			if t == nil {
-				break
-			}
-
-			/*
-				    Pseudo code for the algorithm below:
-						check if parent is xbrl, ignore if it is
-						if not xbrl, save the start element name
-						save every element: start, chardata, and endelement, to a new list (DON'T use map, order is not guaranteed)
-						if you encounter an end element that matches the start element, add the element list to the object parser for that element
-
-						now we have a map of elements with their variables.
-						parse all contexts first so that we know which one we want. store that in the FinancialReportParser
-
-						parse every other element
-			*/
-
-			switch element := t.(type) {
-			case xml.StartElement:
-				if element.Name.Local == "xbrl" {
-					//no-op
-				} else if parentElement == "" {
-					parentElement = element.Name.Local
-					// log.Println("@@@ Savign poarent ", parentElement)
-					// include the first parent element so we have access to the attributes
-					elementList.PushBack(element)
-				} else {
-					// log.Println("@@@ Pushing parent; ", parentElement, element.Name.Local)
-					elementList.PushBack(element)
-				}
-
-				break
-			case xml.CharData:
-				// log.Println("@@@ Pushing parent; ", parentElement, string(element))
-				elementList.PushBack(string(element))
-				break
-			case xml.EndElement:
-				if element.Name.Local == "xbrl" {
-					//no-op
-				} else if element.Name.Local == parentElement {
-					if parserMap[parentElement] == nil {
-						parserMap[parentElement] = list.New()
-					}
-
-					// log.Println("@@@ Adding element list ", elementList)
-					parserMap[parentElement].PushBack(elementList)
-
-					parentElement = ""
-					elementList = list.New()
-				} else {
-					// log.Println("@@@ Pushing parent; ", parentElement, element.Name.Local)
-					elementList.PushBack(element)
-				}
-
-				break
-			}
-		}
-
-		log.Println("Our parser map is ", parserMap)
+		// create a map of parent elements which we can match up with functions that do the actual parsing
+		parserMap := createParserMap(decoder)
 
 		// context must be parsed first!
 		contextList, contextExists := parserMap[contextTag]
@@ -146,6 +82,72 @@ func (frp *FinancialReportParser) Parse() {
 		log.Println("@@@ context used for this quarter is ", frp.currentContext)
 		log.Println("@@@ revenue for this quarter is ", frp.financialReport.Revenue)
 	}
+}
+
+func createParserMap(decoder *xml.Decoder) map[string]*list.List {
+	var parentElement string = ""
+	elementList := list.New()
+	parserMap := make(map[string]*list.List)
+
+	for {
+		// Read tokens from the XML document in a stream.
+		t, _ := decoder.Token()
+		if t == nil {
+			break
+		}
+
+		/*
+			    Pseudo code for the algorithm below:
+					check if parent is xbrl, ignore if it is
+					if not xbrl, save the start element name
+					save every element: start, chardata, and endelement, to a new list (DON'T use map, order is not guaranteed)
+					if you encounter an end element that matches the start element, add the element list to the object parser for that element
+
+					now we have a map of elements with their variables.
+		*/
+
+		switch element := t.(type) {
+		case xml.StartElement:
+			if element.Name.Local == "xbrl" {
+				//no-op
+			} else if parentElement == "" {
+				parentElement = element.Name.Local
+				// log.Println("@@@ Savign poarent ", parentElement)
+				// include the first parent element so we have access to the attributes
+				elementList.PushBack(element)
+			} else {
+				// log.Println("@@@ Pushing parent; ", parentElement, element.Name.Local)
+				elementList.PushBack(element)
+			}
+
+			break
+		case xml.CharData:
+			// log.Println("@@@ Pushing parent; ", parentElement, string(element))
+			elementList.PushBack(string(element))
+			break
+		case xml.EndElement:
+			if element.Name.Local == "xbrl" {
+				//no-op
+			} else if element.Name.Local == parentElement {
+				if parserMap[parentElement] == nil {
+					parserMap[parentElement] = list.New()
+				}
+
+				// log.Println("@@@ Adding element list ", elementList)
+				parserMap[parentElement].PushBack(elementList)
+
+				parentElement = ""
+				elementList = list.New()
+			} else {
+				// log.Println("@@@ Pushing parent; ", parentElement, element.Name.Local)
+				elementList.PushBack(element)
+			}
+
+			break
+		}
+	}
+
+	return parserMap
 }
 
 func verifyContext(correctContext string, attributes []xml.Attr) bool {
@@ -247,8 +249,6 @@ func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 				break
 			}
 		}
-
-		log.Println("@@@ for contexnt ", currentContext, " we have start ", startDate, " and end ", endDate)
 
 		periodLengthInMonths := int(endDate.Month()) - int(startDate.Month())
 

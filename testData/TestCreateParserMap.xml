@@ -1,0 +1,66 @@
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:us-gaap="http://fasb.org/us-gaap/2014-01-31" xmlns:dei="http://xbrl.sec.gov/dei/2014-01-31" xmlns:rmcf="http://www.rockymountainchocolatefactory.com/20140831" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:us-types="http://fasb.org/us-types/2014-01-31" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:compsci="http://compsciresources.com" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"> 
+  <link:schemaRef xlink:type="simple" xlink:href="rmcf-20140831.xsd"/> 
+  <context id="c0_From1Jun2014To31Aug2014">    
+    <entity>   
+      <identifier scheme="http://www.sec.gov/CIK">0000785815</identifier>    
+    </entity>    
+    <period>   
+      <startDate>2014-06-01</startDate>     
+      <endDate>2014-08-31</endDate> 
+    </period>    
+  </context>   
+  <context id="c1_From1Jun2013To31Aug2013">    
+    <entity>   
+      <identifier scheme="http://www.sec.gov/CIK">0000785815</identifier>    
+    </entity>    
+    <period>   
+      <startDate>2013-06-01</startDate>     
+      <endDate>2013-08-31</endDate> 
+    </period>    
+  </context>   
+  <context id="c2_From1Mar2014To31Aug2014">    
+    <entity>   
+      <identifier scheme="http://www.sec.gov/CIK">0000785815</identifier>    
+    </entity>    
+    <period>   
+      <startDate>2014-03-01</startDate>     
+      <endDate>2014-08-31</endDate> 
+    </period>    
+  </context>   
+  <context id="c3_From1Mar2013To31Aug2013">    
+    <entity>   
+      <identifier scheme="http://www.sec.gov/CIK">0000785815</identifier>    
+    </entity>    
+    <period>   
+      <startDate>2013-03-01</startDate>     
+      <endDate>2013-08-31</endDate> 
+    </period>    
+  </context>   
+  <context id="c4_AsOf31Aug2014">    
+    <entity>   
+      <identifier scheme="http://www.sec.gov/CIK">0000785815</identifier>    
+    </entity>    
+    <period>   
+      <instant>2014-08-31</instant> 
+    </period>    
+  </context>   
+  <context id="c5_AsOf28Feb2014">    
+    <entity>   
+      <identifier scheme="http://www.sec.gov/CIK">0000785815</identifier>    
+    </entity>    
+    <period>   
+      <instant>2014-02-28</instant> 
+    </period>    
+  </context>  
+  <us-gaap:SalesRevenueNet unitRef="usd" contextRef="c0_From1Jun2014To31Aug2014" decimals="0">6673729</us-gaap:SalesRevenueNet>   
+  <us-gaap:SalesRevenueNet unitRef="usd" contextRef="c1_From1Jun2013To31Aug2013" decimals="0">6686149</us-gaap:SalesRevenueNet>   
+  <us-gaap:SalesRevenueNet unitRef="usd" contextRef="c2_From1Mar2014To31Aug2014" decimals="0">14524780</us-gaap:SalesRevenueNet>    
+  <us-gaap:SalesRevenueNet unitRef="usd" contextRef="c3_From1Mar2013To31Aug2013" decimals="0">14864838</us-gaap:SalesRevenueNet>    
+  <us-gaap:FranchiseRevenue unitRef="usd" contextRef="c0_From1Jun2014To31Aug2014" decimals="0">2783719</us-gaap:FranchiseRevenue> 
+  <us-gaap:Revenues unitRef="usd" contextRef="c0_From1Jun2014To31Aug2014" decimals="0">9457448</us-gaap:Revenues>    
+  <us-gaap:Revenues unitRef="usd" contextRef="c1_From1Jun2013To31Aug2013" decimals="0">8663161</us-gaap:Revenues>    
+  <us-gaap:Revenues unitRef="usd" contextRef="c2_From1Mar2014To31Aug2014" decimals="0">19779654</us-gaap:Revenues>     
+  <us-gaap:Revenues unitRef="usd" contextRef="c3_From1Mar2013To31Aug2013" decimals="0">18841023</us-gaap:Revenues>     
+  <us-gaap:CostOfRevenue unitRef="usd" contextRef="c0_From1Jun2014To31Aug2014" decimals="0">3867671</us-gaap:CostOfRevenue>    
+  <us-gaap:CostOfRevenue unitRef="usd" contextRef="c1_From1Jun2013To31Aug2013" decimals="0">3700926</us-gaap:CostOfRevenue>
+</xbrl>   
