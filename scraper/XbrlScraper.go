@@ -90,6 +90,8 @@ func (efis *EdgarFullIndexScraper) ParseIndexFile(fileReader io.ReadCloser) {
 
 				log.Println("CIK: ", cik, " Company Name: ", companyName, " Form type: ", formType, "  Date Filed: ", dateFiled, "  FileName: ", filename)
 
+				// TODO check parsed data store to see if we can skip this one (unless forced)
+
 				efis.GetXbrl(filename)
 				// TODO - temporary hack for testing
 				break
@@ -110,6 +112,8 @@ func (efis *EdgarFullIndexScraper) GetXbrl(edgarFilename string) {
     baseName := strings.Trim(parts[3], ".txt")
     preBase := strings.Replace(baseName, "-", "", -1)
     parts[3] = preBase + "/" + baseName + XBRL_ZIP_SUFFIX
+
+	// TODO check temp store to see if file exists (baseName + XML suffix)
 
     fullUrl := SEC_EDGAR_BASE_URL + strings.Join(parts, "/")
 
@@ -157,6 +161,8 @@ func (efis *EdgarFullIndexScraper) getXbrlFromZip(zipFileName string) {
 
                 xbrlFile, xbrlErr := zippedFile.Open()
 
+				defer xbrlFile.Close()
+
                 if xbrlErr != nil {
                 	log.Error("Failed to open zip file")
                 } else {
@@ -164,6 +170,7 @@ func (efis *EdgarFullIndexScraper) getXbrlFromZip(zipFileName string) {
                 	if readErr != nil {
 			            log.Error("Failed to read")
 			        } else {
+						// TODO write file as the xbrl base name, not the zipped file name. 
 			        	writeErr := ioutil.WriteFile(zippedFileName, data, 0777)
 
 			        	if writeErr != nil {
