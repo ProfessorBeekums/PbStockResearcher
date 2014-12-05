@@ -4,8 +4,8 @@ import (
 	"archive/zip"
 	"bufio"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
+	"github.com/ProfessorBeekums/PbStockResearcher/tmpStore"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -26,25 +26,27 @@ const XBRL_ZIP_SUFFIX = "-xbrl.zip"
 
 type EdgarFullIndexScraper struct {
 	year, quarter int
+	ts            *tmpStore.TempStore
 }
 
-func NewEdgarFullIndexScraper(year, quarter int) *EdgarFullIndexScraper {
-	return &EdgarFullIndexScraper{year: year, quarter: quarter}
+func NewEdgarFullIndexScraper(year, quarter int,
+	ts *tmpStore.TempStore) *EdgarFullIndexScraper {
+	return &EdgarFullIndexScraper{year: year, quarter: quarter, ts: ts}
 }
 
 func (efis *EdgarFullIndexScraper) ScrapeEdgarQuarterlyIndex() {
 	log.Println("Starting to scrape the full index for year <", efis.year,
 		"> and quarter:", efis.quarter)
 
-	indexUrl := EDGAR_FULL_INDEX_URL_PREFIX + 
+	indexUrl := EDGAR_FULL_INDEX_URL_PREFIX +
 		strconv.FormatInt(int64(efis.year), 10) +
-		"/QTR" + strconv.FormatInt(int64(efis.quarter),10) + INDEX_FILE_NAME
+		"/QTR" + strconv.FormatInt(int64(efis.quarter), 10) + INDEX_FILE_NAME
 
 	getResp, getErr := http.Get(indexUrl)
 
 	if getErr != nil {
-		log.Error("Failed to retrieve index for url <", indexUrl, 
-		"> with error: ", getErr)
+		log.Error("Failed to retrieve index for url <", indexUrl,
+			"> with error: ", getErr)
 	} else if getResp.StatusCode != 200 {
 		log.Error("Received status code <", getResp.Status, "> for url: ", indexUrl)
 	} else {
@@ -64,7 +66,7 @@ func (efis *EdgarFullIndexScraper) ParseIndexFile(fileReader io.ReadCloser) {
 
 	reader := bufio.NewReader(fileReader)
 	for readErr == nil {
-		// none of these lines should be bigger than the buffer 
+		// none of these lines should be bigger than the buffer
 		line, isPrefix, readErr = reader.ReadLine()
 		if isPrefix {
 			// don't bother parsing here, just log that we had an error
@@ -90,98 +92,98 @@ func (efis *EdgarFullIndexScraper) ParseIndexFile(fileReader io.ReadCloser) {
 
 				log.Println("CIK: ", cik, " Company Name: ", companyName, " Form type: ", formType, "  Date Filed: ", dateFiled, "  FileName: ", filename)
 
-				// TODO check parsed data store to see if we can skip this one (unless forced)
+				bucket := getBucket(cik)
+				fileKey := getKey(formType, efis.year, efis.quarter)
 
-				efis.GetXbrl(filename)
-				// TODO - temporary hack for testing
-				break
+				filePath := efis.ts.GetFilePath(bucket, fileKey)
+
+				if filePath == "" {
+					efis.GetXbrl(filename, bucket, fileKey)
+					// TODO - temporary hack for testing
+					break
+				} else {
+					log.Println("SKIP <", filename, "> because it already exists in: ", filePath)
+				}
 			}
 		}
 	}
 }
 
-// The full index provides links to txt files. We want to convert these to retrieve the corresponding zip of xbrl files 
+// The full index provides links to txt files. We want to convert these to retrieve the corresponding zip of xbrl files
 // and extract the main xbrl file.
-func (efis *EdgarFullIndexScraper) GetXbrl(edgarFilename string) {
+func (efis *EdgarFullIndexScraper) GetXbrl(edgarFilename, bucket, fileKey string) {
 	if !strings.Contains(edgarFilename, ".txt") {
 		log.Error("Unexpected file type: ", edgarFilename)
 		return
 	}
 
-    parts := strings.Split(edgarFilename, "/")
-    baseName := strings.Trim(parts[3], ".txt")
-    preBase := strings.Replace(baseName, "-", "", -1)
-    parts[3] = preBase + "/" + baseName + XBRL_ZIP_SUFFIX
+	parts := strings.Split(edgarFilename, "/")
+	baseName := strings.Trim(parts[3], ".txt")
+	preBase := strings.Replace(baseName, "-", "", -1)
+	parts[3] = preBase + "/" + baseName + XBRL_ZIP_SUFFIX
 
-	// TODO check temp store to see if file exists (baseName + XML suffix)
+	fullUrl := SEC_EDGAR_BASE_URL + strings.Join(parts, "/")
 
-    fullUrl := SEC_EDGAR_BASE_URL + strings.Join(parts, "/")
+	log.Println("Getting xbrl zip from ", fullUrl)
 
-    log.Println("Getting xbrl zip from ", fullUrl)
+	getResp, getErr := http.Get(fullUrl)
 
-    getResp, getErr := http.Get(fullUrl)
+	if getErr != nil {
+		log.Error("Failed get to: ", fullUrl)
+	} else {
+		defer getResp.Body.Close()
 
-    if getErr != nil {
-        log.Error("Failed get to: ", fullUrl)
-    } else {
-        defer getResp.Body.Close()
+		outputFileName := strconv.Itoa(int(time.Now().Unix())) + baseName + XBRL_ZIP_SUFFIX
+		zipFilePath := efis.ts.StoreFile(bucket, outputFileName, getResp.Body)
 
-        data, readErr := ioutil.ReadAll(getResp.Body)
-
-        if readErr != nil {
-            log.Error("Failed to read")
-        } else {
-            outputFileName := strconv.Itoa(int(time.Now().Unix()) )+ baseName + XBRL_ZIP_SUFFIX
-            // TODO configure a data directory
-            writeErr := ioutil.WriteFile(outputFileName, data, 0777)
-
-            
-            if writeErr != nil {
-            	log.Error("Failed to write file: ", writeErr)
-            } else {
-            	efis.getXbrlFromZip(outputFileName)
-            }
-        }   
-    }
+		if zipFilePath != "" {
+			efis.getXbrlFromZip(zipFilePath, bucket, fileKey)
+		}
+	}
 }
 
-func (efis *EdgarFullIndexScraper) getXbrlFromZip(zipFileName string) {
+func (efis *EdgarFullIndexScraper) getXbrlFromZip(zipFileName, bucket, fileKey string) {
 	zipReader, zipErr := zip.OpenReader(zipFileName)
 
 	if zipErr != nil {
 		log.Error("Failed to open zip: ", zipFileName, " with error: ", zipErr)
-    } else {
-        defer zipReader.Close()
+	} else {
+		defer zipReader.Close()
 
-        for _, zippedFile := range zipReader.File {
-            zippedFileName := zippedFile.Name
-            isMatch,_ := regexp.MatchString("[a-z]+-[0-9]{8}.xml", zippedFileName)
-            if isMatch {
-                log.Println("Found zipped file: ", zippedFileName ) 
+		foundOne := false
 
-                xbrlFile, xbrlErr := zippedFile.Open()
+		for _, zippedFile := range zipReader.File {
+			zippedFileName := zippedFile.Name
+			isMatch, _ := regexp.MatchString("[a-z]+-[0-9]{8}.xml", zippedFileName)
+			if isMatch {
+				foundOne = true
+				log.Println("Found zipped file: ", zippedFileName)
+
+				xbrlFile, xbrlErr := zippedFile.Open()
 
 				defer xbrlFile.Close()
 
-                if xbrlErr != nil {
-                	log.Error("Failed to open zip file")
-                } else {
-                	data, readErr := ioutil.ReadAll(xbrlFile)
-                	if readErr != nil {
-			            log.Error("Failed to read")
-			        } else {
-						// TODO write file as the xbrl base name, not the zipped file name. 
-			        	writeErr := ioutil.WriteFile(zippedFileName, data, 0777)
+				if xbrlErr != nil {
+					log.Error("Failed to open zip file")
+				} else {
+					efis.ts.StoreFile(bucket, fileKey, xbrlFile)
+				}
 
-			        	if writeErr != nil {
-			            	log.Error("Failed to write file: ", writeErr)
-			            }
-			        }
-                }
+				// we don't care about the other stuff
+				break
+			}
+		}
 
-                // we don't care about the other stuff
-                break
-            }       
-        }
-    }
+		if foundOne == false {
+			log.Error("Could not find a match for an xbrl in ", zipFileName)
+		}
+	}
+}
+
+func getBucket(cik string) string {
+	return "CIK_" + cik
+}
+
+func getKey(formType string, year, quarter int) string {
+	return "Y" + strconv.Itoa(year) + "Q" + strconv.Itoa(quarter) + "FT" + formType
 }

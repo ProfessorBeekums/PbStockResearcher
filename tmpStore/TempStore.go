@@ -16,10 +16,11 @@ func NewTempStore(storeDir string) *TempStore {
 	return &TempStore{storeDir: storeDir}
 }
 
-func (ts *TempStore) StoreFile(bucket, fileName string, fileReader io.Reader) {
+func (ts *TempStore) StoreFile(bucket, fileName string, 
+fileReader io.Reader) string {
 	if getPercentDiskFree(ts.storeDir) < .25 {
 		log.Error("Ran out of temp store disk")
-		return;
+		return "";
 	}
 
 	data, readErr := ioutil.ReadAll(fileReader)
@@ -37,7 +38,7 @@ func (ts *TempStore) StoreFile(bucket, fileName string, fileReader io.Reader) {
 		mkErr := os.Mkdir(path, 0777)
 		if mkErr != nil {
 			log.Error("Failed to create path: " + path)
-			return;
+			return "";
 		}
 	}
 
@@ -48,6 +49,8 @@ func (ts *TempStore) StoreFile(bucket, fileName string, fileReader io.Reader) {
 		log.Error("Failed to write <",
             bucket, "> and file name: ", fileName)
 	}
+
+	return filePath
 }
 
 func (ts *TempStore) GetFilePath(bucket, fileName string) string {
