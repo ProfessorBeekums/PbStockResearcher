@@ -29,7 +29,7 @@ func (ts *TempStore) StoreFile(bucket, fileName string, fileReader io.Reader) {
 			bucket, "> and file name: ", fileName)
 	}
 
-	path := ts.storeDir + "/" + bucket
+	path := ts.getDirPath(bucket)
 	_, pathErr := os.Stat(path)
 
 	if pathErr != nil {
@@ -48,6 +48,21 @@ func (ts *TempStore) StoreFile(bucket, fileName string, fileReader io.Reader) {
 		log.Error("Failed to write <",
             bucket, "> and file name: ", fileName)
 	}
+}
+
+func (ts *TempStore) GetFilePath(bucket, fileName string) string {
+	filePath := ts.getDirPath(bucket) + "/" + fileName
+	_, err := os.Stat(filePath)
+
+	if err != nil {
+		return "" 
+	} else {
+		return filePath
+	}
+}
+
+func (ts *TempStore) getDirPath(bucket string) string {
+	return ts.storeDir + "/" + bucket
 }
 
 func getPercentDiskFree(dir string) float64 {
