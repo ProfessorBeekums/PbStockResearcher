@@ -1,5 +1,5 @@
 package filings
 
 type FinancialReport struct {
-	Revenue int64
+	CIK, Year, Quarter, Revenue int64
 }
