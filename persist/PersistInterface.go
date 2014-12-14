@@ -9,3 +9,8 @@ type PersistFinancialReports interface {
 	UpdateFinancialReport(fr *filings.FinancialReport)
 	GetFinancialReport(cik, year, quarter int64) *filings.FinancialReport
 }
+
+type PersistCompany interface {
+	InsertUpdateCompany(comany *filings.Company)
+	GetCompany(cik int64) *filings.Company
+}

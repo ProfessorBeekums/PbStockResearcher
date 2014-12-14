@@ -8,6 +8,15 @@ import (
 )
 
 const financialReportsCollection = "FinancialReport"
+const companyCollection = "Company"
+
+type MongoDbCompany struct {
+	host, database string
+}
+
+func NewMongoDbCompany(host, database string) *MongoDbCompany {
+	return &MongoDbCompany{host:host, database:database}
+}
 
 type MongoDbFinancialReports struct {
 	host, database string
@@ -17,23 +26,53 @@ func NewMongoDbFinancialReports(host, database string) *MongoDbFinancialReports 
 	return &MongoDbFinancialReports{host: host, database: database}
 }
 
-func (mdfr *MongoDbFinancialReports) getSessionAndCollection() (*mgo.Session, *mgo.Collection) {
-	session, mongoErr := mgo.Dial(mdfr.host)
+func getSessionAndCollection(host, database, collStr string) (*mgo.Session, *mgo.Collection) {
+	session, mongoErr := mgo.Dial(host)
 	if mongoErr != nil {
-		log.Error("Failed to create session to MongoDb host: ", mdfr.host)
+		log.Error("Failed to create session to MongoDb host: ", host)
 		return nil, nil
 	} else {
 		session.SetMode(mgo.Strong, true)
 
-		db := session.DB(mdfr.database)
-		collection := db.C(financialReportsCollection)
+		db := session.DB(database)
+		collection := db.C(collStr)
 
 		return session, collection
 	}
 }
 
+func (mdc *MongoDbCompany) InsertUpdateCompany(company *filings.Company) {
+	session, coll :=
+		getSessionAndCollection(mdc.host, mdc.database, companyCollection)
+
+	if session != nil {
+		defer session.Close()
+		
+		_, upErr := coll.Upsert(bson.M{"cik":company.CIK}, company)
+		if upErr != nil {
+			log.Error("Failed to upsert company with cik <", company.CIK, 
+			"> due to error: ", upErr)
+		}
+	}
+}
+
+func (mdc *MongoDbCompany) GetCompany(cik int64) *filings.Company {
+	session, coll :=
+        getSessionAndCollection(mdc.host, mdc.database, companyCollection)
+	company := &filings.Company{}
+
+    if session != nil {
+        defer session.Close()
+		
+		coll.Find(bson.M{"cik": cik}).One(&company)
+	}
+
+	return company
+}
+
 func (mdfr *MongoDbFinancialReports) CreateFinancialReport(fr *filings.FinancialReport) {
-	session, coll := mdfr.getSessionAndCollection()
+	session, coll := 
+		getSessionAndCollection(mdfr.host, mdfr.database, financialReportsCollection)
 
 	if session != nil {
 		defer session.Close()
@@ -49,7 +88,8 @@ func (mdfr *MongoDbFinancialReports) CreateFinancialReport(fr *filings.Financial
 }
 
 func (mdfr *MongoDbFinancialReports) UpdateFinancialReport(fr *filings.FinancialReport) {
-	session, coll := mdfr.getSessionAndCollection()
+	session, coll := 
+	        getSessionAndCollection(mdfr.host, mdfr.database, financialReportsCollection)
 
 	if session != nil {
 		defer session.Close()
@@ -66,7 +106,8 @@ func (mdfr *MongoDbFinancialReports) UpdateFinancialReport(fr *filings.Financial
 
 func (mdfr *MongoDbFinancialReports) GetFinancialReport(cik, year, quarter int64) *filings.FinancialReport {
 	report := &filings.FinancialReport{}
-	session, coll := mdfr.getSessionAndCollection()
+	session, coll := 
+	        getSessionAndCollection(mdfr.host, mdfr.database, financialReportsCollection)
 
 	if session != nil {
 		defer session.Close()
