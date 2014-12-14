@@ -22,7 +22,7 @@ type FinancialReportParser struct {
 	// TODO add in year/quarter so we can verify that we are parsing the right file
 	currentContext, xbrlFileName string
 	financialReport              *filings.FinancialReport
-	persister persist.PersistFinancialReports
+	persister                    persist.PersistFinancialReports
 }
 
 type XbrlElementParser func(frp *FinancialReportParser, listOfElementLists *list.List)
@@ -82,7 +82,7 @@ func (frp *FinancialReportParser) Parse() {
 			}
 		}
 
-		log.Println("Persister: ",frp.persister)
+		log.Println("Persister: ", frp.persister)
 
 		frp.persister.CreateFinancialReport(frp.financialReport)
 

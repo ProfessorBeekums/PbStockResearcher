@@ -154,7 +154,7 @@ func (efis *EdgarFullIndexScraper) getXbrlFromZip(zipFileName, bucket, fileKey s
 
 		for _, zippedFile := range zipReader.File {
 			zippedFileName := zippedFile.Name
-			isMatch := isXbrlFileMatch(zippedFileName) 
+			isMatch := isXbrlFileMatch(zippedFileName)
 			if isMatch {
 				foundOne = true
 				log.Println("Found zipped file: ", zippedFileName)
@@ -188,7 +188,7 @@ func getKey(formType string, year, quarter int) string {
 	return "Y" + strconv.Itoa(year) + "Q" + strconv.Itoa(quarter) + "FT" + formType
 }
 
-func isXbrlFileMatch(fileName string) bool{
+func isXbrlFileMatch(fileName string) bool {
 	isMatch, _ := regexp.MatchString("([a-z]|[0-9])+-[0-9]+.xml", fileName)
 	return isMatch
 }

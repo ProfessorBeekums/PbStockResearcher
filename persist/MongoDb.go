@@ -13,7 +13,7 @@ type MongoDbFinancialReports struct {
 	host, database string
 }
 
-func NewMongoDbFinancialReports(host, database string) *MongoDbFinancialReports{
+func NewMongoDbFinancialReports(host, database string) *MongoDbFinancialReports {
 	return &MongoDbFinancialReports{host: host, database: database}
 }
 
@@ -26,7 +26,7 @@ func (mdfr *MongoDbFinancialReports) getSessionAndCollection() (*mgo.Session, *m
 		session.SetMode(mgo.Strong, true)
 
 		db := session.DB(mdfr.database)
-		collection := db.C(financialReportsCollection)	
+		collection := db.C(financialReportsCollection)
 
 		return session, collection
 	}
@@ -42,36 +42,36 @@ func (mdfr *MongoDbFinancialReports) CreateFinancialReport(fr *filings.Financial
 
 		if err != nil {
 			log.Error("Failed to insert financial report with cik <",
-			fr.CIK, "> and year <", fr.Year, "> and quarter <", fr.Quarter,
-			"> with error: ", err)
+				fr.CIK, "> and year <", fr.Year, "> and quarter <", fr.Quarter,
+				"> with error: ", err)
 		}
-	}	
+	}
 }
 
 func (mdfr *MongoDbFinancialReports) UpdateFinancialReport(fr *filings.FinancialReport) {
 	session, coll := mdfr.getSessionAndCollection()
 
-    if session != nil {
-        defer session.Close()
+	if session != nil {
+		defer session.Close()
 
-        err := coll.Update(bson.M{"cik" : fr.CIK, "year" : fr.Year, "quarter" : fr.Quarter} ,fr)
+		err := coll.Update(bson.M{"cik": fr.CIK, "year": fr.Year, "quarter": fr.Quarter}, fr)
 
-        if err != nil {
-            log.Error("Failed to update financial report with cik <",
-            fr.CIK, "> and year <", fr.Year, "> and quarter <", fr.Quarter,
-            "> with error: ", err)
-        }
-    }
+		if err != nil {
+			log.Error("Failed to update financial report with cik <",
+				fr.CIK, "> and year <", fr.Year, "> and quarter <", fr.Quarter,
+				"> with error: ", err)
+		}
+	}
 }
 
 func (mdfr *MongoDbFinancialReports) GetFinancialReport(cik, year, quarter int64) *filings.FinancialReport {
 	report := &filings.FinancialReport{}
 	session, coll := mdfr.getSessionAndCollection()
 
-    if session != nil {
-        defer session.Close()
-		
-		coll.Find(bson.M{"cik" : cik, "year" : year, "quarter" : quarter}).One(&report)
+	if session != nil {
+		defer session.Close()
+
+		coll.Find(bson.M{"cik": cik, "year": year, "quarter": quarter}).One(&report)
 	}
 
 	return report
