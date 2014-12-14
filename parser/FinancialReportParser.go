@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"github.com/ProfessorBeekums/PbStockResearcher/filings"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
+	"github.com/ProfessorBeekums/PbStockResearcher/persist"
 	"os"
 	"strconv"
 	"strings"
@@ -21,20 +22,22 @@ type FinancialReportParser struct {
 	// TODO add in year/quarter so we can verify that we are parsing the right file
 	currentContext, xbrlFileName string
 	financialReport              *filings.FinancialReport
+	persister persist.PersistFinancialReports
 }
 
 type XbrlElementParser func(frp *FinancialReportParser, listOfElementLists *list.List)
 
 var parseFunctionMap map[string]XbrlElementParser
 
-func NewFinancialReportParser(xbrlFileName string) *FinancialReportParser {
+func NewFinancialReportParser(xbrlFileName string, fr *filings.FinancialReport, persister persist.PersistFinancialReports) *FinancialReportParser {
 	parseFunctionMap = map[string]XbrlElementParser{
 		contextTag: parseContext,
 		revenueTag: parseRevenue,
 	}
 
 	parser := &FinancialReportParser{xbrlFileName: xbrlFileName}
-	parser.financialReport = &filings.FinancialReport{}
+	parser.financialReport = fr
+	parser.persister = persister
 
 	return parser
 }
@@ -78,6 +81,10 @@ func (frp *FinancialReportParser) Parse() {
 				parseFunction(frp, list)
 			}
 		}
+
+		log.Println("Persister: ",frp.persister)
+
+		frp.persister.CreateFinancialReport(frp.financialReport)
 
 		log.Println("@@@ context used for this quarter is ", frp.currentContext)
 		log.Println("@@@ revenue for this quarter is ", frp.financialReport.Revenue)
