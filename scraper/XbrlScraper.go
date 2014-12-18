@@ -115,8 +115,6 @@ func (efis *EdgarFullIndexScraper) ParseIndexFile(fileReader io.ReadCloser) {
 				if filePath == "" {
 					reportFile := &filings.ReportFile{CIK: int64(cikInt), Year: int64(efis.year), Quarter: int64(efis.quarter), Parsed: false}
 					efis.GetXbrl(filename, bucket, fileKey, reportFile)
-					// TODO - temporary hack for testing
-					break
 				} else {
 					log.Println("SKIP <", filename, "> because it already exists in: ", filePath)
 				}
