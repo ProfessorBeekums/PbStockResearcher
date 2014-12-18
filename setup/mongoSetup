@@ -1,3 +1,5 @@
+db.createCollection("ReportFiles")
+db.ReportFiles.ensureIndex({"cik":1, "year": 1, "quarter": 1}, {unique:true, sparse: false, background: true})
 db.createCollection("FinancialReport")
 db.FinancialReport.ensureIndex({"cik":1, "year": 1, "quarter": 1}, {unique:true, sparse: false, background: true})
 db.createCollection("Company")

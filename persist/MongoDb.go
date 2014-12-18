@@ -9,13 +9,22 @@ import (
 
 const financialReportsCollection = "FinancialReport"
 const companyCollection = "Company"
+const reportFilesCollection = "ReportFiles"
 
 type MongoDbCompany struct {
 	host, database string
 }
 
 func NewMongoDbCompany(host, database string) *MongoDbCompany {
-	return &MongoDbCompany{host:host, database:database}
+	return &MongoDbCompany{host: host, database: database}
+}
+
+type MongoDbReportFiles struct {
+	host, database string
+}
+
+func NewMongoDbReportFiles(host, database string) *MongoDbReportFiles {
+	return &MongoDbReportFiles{host: host, database: database}
 }
 
 type MongoDbFinancialReports struct {
@@ -41,29 +50,64 @@ func getSessionAndCollection(host, database, collStr string) (*mgo.Session, *mgo
 	}
 }
 
+func (mdrf *MongoDbReportFiles) InsertUpdateReportFile(reportFile *filings.ReportFile) {
+	session, coll :=
+		getSessionAndCollection(mdrf.host, mdrf.database, reportFilesCollection)
+
+	if session != nil {
+		defer session.Close()
+
+		_, upErr := coll.Upsert(
+			bson.M{"cik": reportFile.CIK,
+				"year":    reportFile.Year,
+				"quarter": reportFile.Quarter}, reportFile)
+
+		if upErr != nil {
+			log.Error("Failed to upsert report file with cik <",
+				reportFile.CIK, "> and year <", reportFile.Year,
+				"> and quarter <", reportFile.Quarter, "> due to error: ", upErr)
+		}
+	}
+}
+
+func (mdrf *MongoDbReportFiles) GetNextUnparsedFiles(numToGet int64) *[]filings.ReportFile {
+	session, coll :=
+		getSessionAndCollection(mdrf.host, mdrf.database, reportFilesCollection)
+
+	results := &[]filings.ReportFile{}
+
+	if session != nil {
+		defer session.Close()
+
+		coll.Find(bson.M{"parsed": false}).Limit(int(numToGet)).All(results)
+	}
+
+	return results
+}
+
 func (mdc *MongoDbCompany) InsertUpdateCompany(company *filings.Company) {
 	session, coll :=
 		getSessionAndCollection(mdc.host, mdc.database, companyCollection)
 
 	if session != nil {
 		defer session.Close()
-		
-		_, upErr := coll.Upsert(bson.M{"cik":company.CIK}, company)
+
+		_, upErr := coll.Upsert(bson.M{"cik": company.CIK}, company)
 		if upErr != nil {
-			log.Error("Failed to upsert company with cik <", company.CIK, 
-			"> due to error: ", upErr)
+			log.Error("Failed to upsert company with cik <", company.CIK,
+				"> due to error: ", upErr)
 		}
 	}
 }
 
 func (mdc *MongoDbCompany) GetCompany(cik int64) *filings.Company {
 	session, coll :=
-        getSessionAndCollection(mdc.host, mdc.database, companyCollection)
+		getSessionAndCollection(mdc.host, mdc.database, companyCollection)
 	company := &filings.Company{}
 
-    if session != nil {
-        defer session.Close()
-		
+	if session != nil {
+		defer session.Close()
+
 		coll.Find(bson.M{"cik": cik}).One(&company)
 	}
 
@@ -71,7 +115,7 @@ func (mdc *MongoDbCompany) GetCompany(cik int64) *filings.Company {
 }
 
 func (mdfr *MongoDbFinancialReports) CreateFinancialReport(fr *filings.FinancialReport) {
-	session, coll := 
+	session, coll :=
 		getSessionAndCollection(mdfr.host, mdfr.database, financialReportsCollection)
 
 	if session != nil {
@@ -88,8 +132,8 @@ func (mdfr *MongoDbFinancialReports) CreateFinancialReport(fr *filings.Financial
 }
 
 func (mdfr *MongoDbFinancialReports) UpdateFinancialReport(fr *filings.FinancialReport) {
-	session, coll := 
-	        getSessionAndCollection(mdfr.host, mdfr.database, financialReportsCollection)
+	session, coll :=
+		getSessionAndCollection(mdfr.host, mdfr.database, financialReportsCollection)
 
 	if session != nil {
 		defer session.Close()
@@ -106,8 +150,8 @@ func (mdfr *MongoDbFinancialReports) UpdateFinancialReport(fr *filings.Financial
 
 func (mdfr *MongoDbFinancialReports) GetFinancialReport(cik, year, quarter int64) *filings.FinancialReport {
 	report := &filings.FinancialReport{}
-	session, coll := 
-	        getSessionAndCollection(mdfr.host, mdfr.database, financialReportsCollection)
+	session, coll :=
+		getSessionAndCollection(mdfr.host, mdfr.database, financialReportsCollection)
 
 	if session != nil {
 		defer session.Close()

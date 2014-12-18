@@ -10,7 +10,12 @@ type PersistFinancialReports interface {
 	GetFinancialReport(cik, year, quarter int64) *filings.FinancialReport
 }
 
+type PersistReportFiles interface {
+	InsertUpdateReportFile(reportFile *filings.ReportFile)
+	GetNextUnparsedFiles(numToGet int64) *[]filings.ReportFile
+}
+
 type PersistCompany interface {
-	InsertUpdateCompany(comany *filings.Company)
+	InsertUpdateCompany(company *filings.Company)
 	GetCompany(cik int64) *filings.Company
 }

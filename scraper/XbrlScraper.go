@@ -27,15 +27,18 @@ const SEC_EDGAR_BASE_URL = "http://www.sec.gov/Archives/"
 const XBRL_ZIP_SUFFIX = "-xbrl.zip"
 
 type EdgarFullIndexScraper struct {
-	year, quarter int
-	ts            *tmpStore.TempStore
-	persister persist.PersistCompany
+	year, quarter   int
+	ts              *tmpStore.TempStore
+	persister       persist.PersistCompany
+	reportPersister persist.PersistReportFiles
 }
 
 func NewEdgarFullIndexScraper(year, quarter int,
-	ts *tmpStore.TempStore, persister persist.PersistCompany) *EdgarFullIndexScraper {
-		return &EdgarFullIndexScraper{year: year, 
-				quarter: quarter, ts: ts, persister: persister}
+	ts *tmpStore.TempStore, persister persist.PersistCompany,
+	reportPersister persist.PersistReportFiles) *EdgarFullIndexScraper {
+	return &EdgarFullIndexScraper{year: year,
+		quarter: quarter, ts: ts, persister: persister,
+		reportPersister: reportPersister}
 }
 
 func (efis *EdgarFullIndexScraper) ScrapeEdgarQuarterlyIndex() {
@@ -110,7 +113,8 @@ func (efis *EdgarFullIndexScraper) ParseIndexFile(fileReader io.ReadCloser) {
 				filePath := efis.ts.GetFilePath(bucket, fileKey)
 
 				if filePath == "" {
-					efis.GetXbrl(filename, bucket, fileKey)
+					reportFile := &filings.ReportFile{CIK: int64(cikInt), Year: int64(efis.year), Quarter: int64(efis.quarter), Parsed: false}
+					efis.GetXbrl(filename, bucket, fileKey, reportFile)
 					// TODO - temporary hack for testing
 					break
 				} else {
@@ -123,7 +127,7 @@ func (efis *EdgarFullIndexScraper) ParseIndexFile(fileReader io.ReadCloser) {
 
 // The full index provides links to txt files. We want to convert these to retrieve the corresponding zip of xbrl files
 // and extract the main xbrl file.
-func (efis *EdgarFullIndexScraper) GetXbrl(edgarFilename, bucket, fileKey string) {
+func (efis *EdgarFullIndexScraper) GetXbrl(edgarFilename, bucket, fileKey string, reportFile *filings.ReportFile) {
 	if !strings.Contains(edgarFilename, ".txt") {
 		log.Error("Unexpected file type: ", edgarFilename)
 		return
@@ -149,12 +153,12 @@ func (efis *EdgarFullIndexScraper) GetXbrl(edgarFilename, bucket, fileKey string
 		zipFilePath := efis.ts.StoreFile(bucket, outputFileName, getResp.Body)
 
 		if zipFilePath != "" {
-			efis.getXbrlFromZip(zipFilePath, bucket, fileKey)
+			efis.getXbrlFromZip(zipFilePath, bucket, fileKey, reportFile)
 		}
 	}
 }
 
-func (efis *EdgarFullIndexScraper) getXbrlFromZip(zipFileName, bucket, fileKey string) {
+func (efis *EdgarFullIndexScraper) getXbrlFromZip(zipFileName, bucket, fileKey string, reportFile *filings.ReportFile) {
 	zipReader, zipErr := zip.OpenReader(zipFileName)
 
 	if zipErr != nil {
@@ -178,7 +182,9 @@ func (efis *EdgarFullIndexScraper) getXbrlFromZip(zipFileName, bucket, fileKey s
 				if xbrlErr != nil {
 					log.Error("Failed to open zip file")
 				} else {
-					efis.ts.StoreFile(bucket, fileKey, xbrlFile)
+					reportPath := efis.ts.StoreFile(bucket, fileKey, xbrlFile)
+					reportFile.Filepath = reportPath
+					efis.reportPersister.InsertUpdateReportFile(reportFile)
 				}
 
 				// we don't care about the other stuff
