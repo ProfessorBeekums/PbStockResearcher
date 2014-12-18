@@ -3,7 +3,9 @@ package scraper
 import (
 	"archive/zip"
 	"bufio"
+	"github.com/ProfessorBeekums/PbStockResearcher/filings"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
+	"github.com/ProfessorBeekums/PbStockResearcher/persist"
 	"github.com/ProfessorBeekums/PbStockResearcher/tmpStore"
 	"io"
 	"net/http"
@@ -27,11 +29,13 @@ const XBRL_ZIP_SUFFIX = "-xbrl.zip"
 type EdgarFullIndexScraper struct {
 	year, quarter int
 	ts            *tmpStore.TempStore
+	persister persist.PersistCompany
 }
 
 func NewEdgarFullIndexScraper(year, quarter int,
-	ts *tmpStore.TempStore) *EdgarFullIndexScraper {
-	return &EdgarFullIndexScraper{year: year, quarter: quarter, ts: ts}
+	ts *tmpStore.TempStore, persister persist.PersistCompany) *EdgarFullIndexScraper {
+		return &EdgarFullIndexScraper{year: year, 
+				quarter: quarter, ts: ts, persister: persister}
 }
 
 func (efis *EdgarFullIndexScraper) ScrapeEdgarQuarterlyIndex() {
@@ -90,6 +94,14 @@ func (efis *EdgarFullIndexScraper) ParseIndexFile(fileReader io.ReadCloser) {
 				dateFiled := elements[3]
 				filename := elements[4]
 
+				cikInt, cikErr := strconv.Atoi(cik)
+
+				if cikErr == nil {
+					company := &filings.Company{CIK: int64(cikInt), Name: companyName}
+					efis.persister.InsertUpdateCompany(company)
+				} else {
+					log.Error("Failed to parse CIK to int: ", cik)
+				}
 				log.Println("CIK: ", cik, " Company Name: ", companyName, " Form type: ", formType, "  Date Filed: ", dateFiled, "  FileName: ", filename)
 
 				bucket := getBucket(cik)
