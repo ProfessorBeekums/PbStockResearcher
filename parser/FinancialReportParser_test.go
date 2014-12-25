@@ -31,7 +31,7 @@ func TestCreateParserMap(t *testing.T) {
 
 func TestVerifyContext(t *testing.T) {
 	context := "myContext"
-	
+
 	xmlName1 := xml.Name{Local: "foo"}
 	xmlName2 := xml.Name{Local: "contextRef"}
 
@@ -55,17 +55,17 @@ func TestVerifyContext(t *testing.T) {
 	}
 }
 
-func TestParseRevenue(t *testing.T) {
+func TestParseInt64Field(t *testing.T) {
 	xbrlFile, _ := os.Open("../testData/TestCreateParserMap.xml")
-    fileReader := bufio.NewReader(xbrlFile)
-    decoder := xml.NewDecoder(fileReader)
+	fileReader := bufio.NewReader(xbrlFile)
+	decoder := xml.NewDecoder(fileReader)
 
-    parserMap := createParserMap(decoder)	
+	parserMap := createParserMap(decoder)
 
-	frp := &FinancialReportParser{currentContext: "c0_From1Jun2014To31Aug2014"}
-	frp.financialReport = &filings.FinancialReport{}
-	
-	parseRevenue(frp, parserMap[revenueTag])
+	frp := NewFinancialReportParser("../testData/TestCreateParserMap.xml", &filings.FinancialReport{}, nil)
+	frp.currentContext = "c0_From1Jun2014To31Aug2014"
+
+	parseInt64Field(frp, parserMap[revenueTag])
 
 	if frp.financialReport.Revenue != 9457448 {
 		t.Fatal("Expected revenue was 9457448, received: ", frp.financialReport.Revenue)
@@ -74,17 +74,37 @@ func TestParseRevenue(t *testing.T) {
 
 func TestParseContext(t *testing.T) {
 	xbrlFile, _ := os.Open("../testData/TestCreateParserMap.xml")
-    fileReader := bufio.NewReader(xbrlFile)
-    decoder := xml.NewDecoder(fileReader)
+	fileReader := bufio.NewReader(xbrlFile)
+	decoder := xml.NewDecoder(fileReader)
 
-    parserMap := createParserMap(decoder)   
+	parserMap := createParserMap(decoder)
 
-    frp := &FinancialReportParser{}
+	frp := &FinancialReportParser{}
 
 	parseContext(frp, parserMap[contextTag])
 
 	if frp.currentContext != "c0_From1Jun2014To31Aug2014" {
-		t.Fatal("Expected context was c0_From1Jun2014To31Aug2014, received: ", 
-				frp.currentContext)
+		t.Fatal("Expected context was c0_From1Jun2014To31Aug2014, received: ",
+			frp.currentContext)
 	}
+}
+
+func TestCompleteParse(t *testing.T) {
+	frp := NewFinancialReportParser("../testData/TestCreateParserMap.xml", &filings.FinancialReport{}, &MockPersister{})
+
+	frp.Parse()
+
+	fr := frp.financialReport
+
+	if fr.Revenue != 9457448 {
+		t.Fatal("Expected revenue was 9457448, received: ", fr.Revenue)
+	}
+}
+
+type MockPersister struct{}
+
+func (mp *MockPersister) CreateFinancialReport(fr *filings.FinancialReport) {}
+func (mp *MockPersister) UpdateFinancialReport(fr *filings.FinancialReport) {}
+func (mp *MockPersister) GetFinancialReport(cik, year, quarter int64) *filings.FinancialReport {
+	return nil
 }

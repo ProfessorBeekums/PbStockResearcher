@@ -28,16 +28,29 @@ type FinancialReportParser struct {
 type XbrlElementParser func(frp *FinancialReportParser, listOfElementLists *list.List)
 
 var parseFunctionMap map[string]XbrlElementParser
+var xmlTagToFieldMap map[string]*int64
 
-func NewFinancialReportParser(xbrlFileName string, fr *filings.FinancialReport, persister persist.PersistFinancialReports) *FinancialReportParser {
+func initializeParseFunctionMap() {
 	parseFunctionMap = map[string]XbrlElementParser{
 		contextTag: parseContext,
-		revenueTag: parseRevenue,
+		revenueTag: parseInt64Field,
 	}
+}
+
+func initializeXmlTagToFieldMap(parser *FinancialReportParser) {
+	xmlTagToFieldMap = map[string]*int64{
+		revenueTag: &parser.financialReport.Revenue,
+	}
+}
+
+func NewFinancialReportParser(xbrlFileName string, fr *filings.FinancialReport, persister persist.PersistFinancialReports) *FinancialReportParser {
+	initializeParseFunctionMap()
 
 	parser := &FinancialReportParser{xbrlFileName: xbrlFileName}
 	parser.financialReport = fr
 	parser.persister = persister
+
+	initializeXmlTagToFieldMap(parser)
 
 	return parser
 }
@@ -73,21 +86,14 @@ func (frp *FinancialReportParser) Parse() {
 
 		for mainElementName, list := range parserMap {
 
-			// log.Println("@@@ checking function: ", mainElementName)
 			parseFunction, funcExists := parseFunctionMap[mainElementName]
 
 			if funcExists {
-				// log.Println("@@@ going to parse: ", mainElementName)
 				parseFunction(frp, list)
 			}
 		}
 
-		log.Println("Persister: ", frp.persister)
-
 		frp.persister.CreateFinancialReport(frp.financialReport)
-
-		log.Println("@@@ context used for this quarter is ", frp.currentContext)
-		log.Println("@@@ revenue for this quarter is ", frp.financialReport.Revenue)
 	}
 }
 
@@ -119,17 +125,14 @@ func createParserMap(decoder *xml.Decoder) map[string]*list.List {
 				//no-op
 			} else if parentElement == "" {
 				parentElement = element.Name.Local
-				// log.Println("@@@ Savign poarent ", parentElement)
 				// include the first parent element so we have access to the attributes
 				elementList.PushBack(element)
 			} else {
-				// log.Println("@@@ Pushing parent; ", parentElement, element.Name.Local)
 				elementList.PushBack(element)
 			}
 
 			break
 		case xml.CharData:
-			// log.Println("@@@ Pushing parent; ", parentElement, string(element))
 			elementList.PushBack(string(element))
 			break
 		case xml.EndElement:
@@ -140,13 +143,11 @@ func createParserMap(decoder *xml.Decoder) map[string]*list.List {
 					parserMap[parentElement] = list.New()
 				}
 
-				// log.Println("@@@ Adding element list ", elementList)
 				parserMap[parentElement].PushBack(elementList)
 
 				parentElement = ""
 				elementList = list.New()
 			} else {
-				// log.Println("@@@ Pushing parent; ", parentElement, element.Name.Local)
 				elementList.PushBack(element)
 			}
 
@@ -169,31 +170,38 @@ func verifyContext(correctContext string, attributes []xml.Attr) bool {
 	return false
 }
 
-func parseRevenue(frp *FinancialReportParser, listOfElementLists *list.List) {
+func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) {
 	for listElement := listOfElementLists.Front(); listElement != nil; listElement = listElement.Next() {
 		elementList := listElement.Value.(*list.List)
 
 		isCorrectContext := false
+		var fieldToUpdate *int64
+		var tagName string
 
 		for elementListElement := elementList.Front(); elementListElement != nil; elementListElement = elementListElement.Next() {
 			xmlElement := elementListElement.Value
 
 			switch element := xmlElement.(type) {
 			case xml.StartElement:
-				if element.Name.Local == revenueTag {
+				tagName = element.Name.Local
+				filingField, fieldExists := xmlTagToFieldMap[tagName]
+				if fieldExists {
 					isCorrectContext = verifyContext(frp.currentContext, element.Attr)
+					if isCorrectContext {
+						fieldToUpdate = filingField
+					}
 				}
 
 				break
 			case string:
 				if isCorrectContext {
-					revStr := strings.TrimSpace(element)
-					revenue, revErr := strconv.ParseInt(revStr, 10, 64)
+					fieldStr := strings.TrimSpace(element)
+					int64Field, convErr := strconv.ParseInt(fieldStr, 10, 64)
 
-					if revErr != nil {
-						log.Error("Failed parsing revenue number into an int due to error: ", revErr)
+					if convErr != nil {
+						log.Error("Failed parsing int64 field <", tagName, "> into an int due to error: ", convErr)
 					} else {
-						frp.financialReport.Revenue = revenue
+						*fieldToUpdate = int64Field
 					}
 				}
 
@@ -223,13 +231,10 @@ func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 
 			switch element := xmlElement.(type) {
 			case xml.StartElement:
-				// log.Println("@@@ going to start parse context: ", element.Name.Local)
 				if element.Name.Local == contextTag {
 					for _, attribute := range element.Attr {
 						if attribute.Name.Local == "id" {
 							currentContext = attribute.Value
-
-							// log.Println("@@@ setting current contest to: ", currentContext)
 
 							break
 						}
@@ -242,7 +247,6 @@ func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 				break
 			case string:
 				content := strings.TrimSpace(element)
-				// log.Println("@@@ going to content parse context: ", content)
 				if parsingStartDate {
 					startDate, _ = time.Parse(shortFormDate, content)
 				} else if parsingEndDate {
@@ -250,7 +254,6 @@ func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 				}
 				break
 			case xml.EndElement:
-				// log.Println("@@@ going to end parse context: ", element.Name.Local)
 				parsingStartDate = false
 				parsingEndDate = false
 				break
