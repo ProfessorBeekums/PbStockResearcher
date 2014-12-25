@@ -90,7 +90,7 @@ func TestParseContext(t *testing.T) {
 }
 
 func TestCompleteParse(t *testing.T) {
-	frp := NewFinancialReportParser("../testData/TestCreateParserMap.xml", &filings.FinancialReport{}, &MockPersister{})
+	frp := NewFinancialReportParser("../testData/rmcf-20140831.xml", &filings.FinancialReport{}, &MockPersister{})
 
 	frp.Parse()
 
@@ -98,6 +98,14 @@ func TestCompleteParse(t *testing.T) {
 
 	if fr.Revenue != 9457448 {
 		t.Fatal("Expected revenue was 9457448, received: ", fr.Revenue)
+	}
+
+	if fr.OperatingExpense != 8028307 {
+		t.Fatal("Expected OperatingExpense was 8028307, received: ", fr.OperatingExpense)
+	}
+
+	if fr.NetIncome != 877356 {
+		t.Fatal("Expected NetIncome was 8028307, received: ", fr.NetIncome)
 	}
 }
 

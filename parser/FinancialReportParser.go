@@ -16,6 +16,10 @@ import (
 const contextTag = "context"
 const revenueTag = "Revenues"
 
+const costsAndExpensesTag = "CostsAndExpenses"
+const operatingExpensesTag = "OperatingExpenses"
+const netIncomeTag = "NetIncomeLoss"
+
 const shortFormDate = "2006-01-02"
 
 type FinancialReportParser struct {
@@ -34,12 +38,19 @@ func initializeParseFunctionMap() {
 	parseFunctionMap = map[string]XbrlElementParser{
 		contextTag: parseContext,
 		revenueTag: parseInt64Field,
+		costsAndExpensesTag: parseInt64Field,
+		operatingExpensesTag: parseInt64Field,
+		netIncomeTag: parseInt64Field,
 	}
 }
 
 func initializeXmlTagToFieldMap(parser *FinancialReportParser) {
+	// there are potentially multiple possible tags for the same field
 	xmlTagToFieldMap = map[string]*int64{
 		revenueTag: &parser.financialReport.Revenue,
+		costsAndExpensesTag: &parser.financialReport.OperatingExpense,
+		operatingExpensesTag: &parser.financialReport.OperatingExpense,
+		netIncomeTag: &parser.financialReport.NetIncome,
 	}
 }
 
@@ -93,7 +104,16 @@ func (frp *FinancialReportParser) Parse() {
 			}
 		}
 
-		frp.persister.CreateFinancialReport(frp.financialReport)
+		frErr := frp.financialReport.IsValid()
+
+		if frErr == nil {
+			frp.persister.CreateFinancialReport(frp.financialReport)			
+		} else {
+			log.Error("FinancialReport with CIK <", frp.financialReport.CIK, 
+				"> year <", frp.financialReport.Year, 
+				"> quarter <", frp.financialReport.Quarter, "> is mising fields: ", frErr)
+		}
+
 	}
 }
 
