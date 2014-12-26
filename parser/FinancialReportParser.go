@@ -27,6 +27,29 @@ type FinancialReportParser struct {
 	currentContext, xbrlFileName string
 	financialReport              *filings.FinancialReport
 	persister                    persist.PersistFinancialReports
+	contextMap                   map[string]*context
+}
+
+/*
+ needs:
+ - ability to hold multiple elements until the end
+ - ability to load *previous* quarters data - Does this mean another table for data?! or just dependency?
+ - need to store each context that exists for a tag. then parse them out
+ - each tag should only have ONE type of context, period or instant. period context can be 3, 6, 9, or 12 months
+ -- balance sheet uses as of, earnings uses period, cash flow is just messed up period
+*/
+type parsedInt64Element struct {
+	context string
+	value   int64
+}
+
+type parsedInt64ElementGroup struct {
+	elements []*parsedInt64Element
+}
+
+type context struct {
+	name                        string
+	startDate, endDate, instant *time.Time
 }
 
 type XbrlElementParser func(frp *FinancialReportParser, listOfElementLists *list.List)
@@ -36,21 +59,21 @@ var xmlTagToFieldMap map[string]*int64
 
 func initializeParseFunctionMap() {
 	parseFunctionMap = map[string]XbrlElementParser{
-		contextTag: parseContext,
-		revenueTag: parseInt64Field,
-		costsAndExpensesTag: parseInt64Field,
+		contextTag:           parseContext,
+		revenueTag:           parseInt64Field,
+		costsAndExpensesTag:  parseInt64Field,
 		operatingExpensesTag: parseInt64Field,
-		netIncomeTag: parseInt64Field,
+		netIncomeTag:         parseInt64Field,
 	}
 }
 
 func initializeXmlTagToFieldMap(parser *FinancialReportParser) {
 	// there are potentially multiple possible tags for the same field
 	xmlTagToFieldMap = map[string]*int64{
-		revenueTag: &parser.financialReport.Revenue,
-		costsAndExpensesTag: &parser.financialReport.OperatingExpense,
+		revenueTag:           &parser.financialReport.Revenue,
+		costsAndExpensesTag:  &parser.financialReport.OperatingExpense,
 		operatingExpensesTag: &parser.financialReport.OperatingExpense,
-		netIncomeTag: &parser.financialReport.NetIncome,
+		netIncomeTag:         &parser.financialReport.NetIncome,
 	}
 }
 
@@ -60,6 +83,7 @@ func NewFinancialReportParser(xbrlFileName string, fr *filings.FinancialReport, 
 	parser := &FinancialReportParser{xbrlFileName: xbrlFileName}
 	parser.financialReport = fr
 	parser.persister = persister
+	parser.contextMap = make(map[string]*context)
 
 	initializeXmlTagToFieldMap(parser)
 
@@ -107,10 +131,10 @@ func (frp *FinancialReportParser) Parse() {
 		frErr := frp.financialReport.IsValid()
 
 		if frErr == nil {
-			frp.persister.CreateFinancialReport(frp.financialReport)			
+			frp.persister.CreateFinancialReport(frp.financialReport)
 		} else {
-			log.Error("FinancialReport with CIK <", frp.financialReport.CIK, 
-				"> year <", frp.financialReport.Year, 
+			log.Error("FinancialReport with CIK <", frp.financialReport.CIK,
+				"> year <", frp.financialReport.Year,
 				"> quarter <", frp.financialReport.Quarter, "> is mising fields: ", frErr)
 		}
 
@@ -242,9 +266,13 @@ func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 
 		parsingStartDate := false
 		parsingEndDate := false
+		parsingInstant := false
 
 		var startDate time.Time
 		var endDate time.Time
+		var instant time.Time
+
+		newContext := &context{}
 
 		for elementListElement := elementList.Front(); elementListElement != nil; elementListElement = elementListElement.Next() {
 			xmlElement := elementListElement.Value
@@ -263,6 +291,8 @@ func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 					parsingStartDate = true
 				} else if element.Name.Local == "endDate" {
 					parsingEndDate = true
+				} else if element.Name.Local == "instant" {
+					parsingInstant = true
 				}
 				break
 			case string:
@@ -271,14 +301,24 @@ func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 					startDate, _ = time.Parse(shortFormDate, content)
 				} else if parsingEndDate {
 					endDate, _ = time.Parse(shortFormDate, content)
+				} else if parsingInstant {
+					instant, _ = time.Parse(shortFormDate, content)
 				}
 				break
 			case xml.EndElement:
 				parsingStartDate = false
 				parsingEndDate = false
+				parsingInstant = false
 				break
 			}
 		}
+
+		newContext.startDate = &startDate
+		newContext.endDate = &endDate
+		newContext.instant = &instant
+		newContext.name = currentContext
+
+		frp.contextMap[currentContext] = newContext
 
 		periodLengthInMonths := int(endDate.Month()) - int(startDate.Month())
 

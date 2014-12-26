@@ -25,14 +25,14 @@ func (fr *FinancialReport) IsValid() error {
 	}
 
 
-	if(fr.TotalAssets == 0) {
-		missingFields += "TotalAssets,"
-	}
+	// if(fr.TotalAssets == 0) {
+	// 	missingFields += "TotalAssets,"
+	// }
 
 
-	if(fr.TotalLiabilities == 0) {
-		missingFields += "TotalLiabilities,"
-	}
+	// if(fr.TotalLiabilities == 0) {
+	// 	missingFields += "TotalLiabilities,"
+	// }
 
 
 	if len(missingFields) > 0 {

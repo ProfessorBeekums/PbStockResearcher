@@ -80,12 +80,52 @@ func TestParseContext(t *testing.T) {
 	parserMap := createParserMap(decoder)
 
 	frp := &FinancialReportParser{}
+	frp.contextMap = make(map[string]*context)
 
 	parseContext(frp, parserMap[contextTag])
 
+	// TODO remove this assertion
 	if frp.currentContext != "c0_From1Jun2014To31Aug2014" {
 		t.Fatal("Expected context was c0_From1Jun2014To31Aug2014, received: ",
 			frp.currentContext)
+	}
+
+	// verify each context as added to the map
+	contextName := "c0_From1Jun2014To31Aug2014"
+	context, exists := frp.contextMap[contextName]
+
+	if !exists {
+		t.Fatal("Missing context: ", contextName)
+	} else {
+		if context.startDate.Month() != 6 || context.startDate.Year() != 2014 {
+			t.Fatal("Context <", contextName, "> has wrong startDate of ", context.startDate.Month(), " - ", context.startDate.Year())
+		} else if context.endDate.Month() != 8 || context.endDate.Year() != 2014 {
+			t.Fatal("Context <", contextName, "> has wrong endDate of ", context.startDate.Month(), " - ", context.startDate.Year())
+		}
+	}
+
+	contextName = "c3_From1Mar2013To31Aug2013"
+	context, exists = frp.contextMap[contextName]
+
+	if !exists {
+		t.Fatal("Missing context: ", contextName)
+	} else {
+		if context.startDate.Month() != 3 || context.startDate.Year() != 2013 {
+			t.Fatal("Context <", contextName, "> has wrong startDate of ", context.startDate.Month(), " - ", context.startDate.Year())
+		} else if context.endDate.Month() != 8 || context.endDate.Year() != 2013 {
+			t.Fatal("Context <", contextName, "> has wrong endDate of ", context.startDate.Month(), " - ", context.startDate.Year())
+		}
+	}
+
+	contextName = "c4_AsOf31Aug2014"
+	context, exists = frp.contextMap[contextName]
+
+	if !exists {
+		t.Fatal("Missing context: ", contextName)
+	} else {
+		if context.instant.Month() != 8 || context.instant.Year() != 2014 {
+			t.Fatal("Context <", contextName, "> has wrong instant of ", context.instant.Month(), " - ", context.instant.Year())
+		}
 	}
 }
 
