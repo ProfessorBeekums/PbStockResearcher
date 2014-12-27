@@ -68,12 +68,6 @@ func TestParseContext(t *testing.T) {
 
 	parseContext(frp, parserMap[contextTag])
 
-	// TODO remove this assertion
-	if frp.currentContext != "c0_From1Jun2014To31Aug2014" {
-		t.Fatal("Expected context was c0_From1Jun2014To31Aug2014, received: ",
-			frp.currentContext)
-	}
-
 	// verify each context as added to the map
 	contextName := "c0_From1Jun2014To31Aug2014"
 	context, exists := frp.contextMap[contextName]

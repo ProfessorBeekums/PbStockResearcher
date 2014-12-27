@@ -64,7 +64,7 @@ func initializeParseFunctionMap() {
 		costsAndExpensesTag:  parseInt64Field,
 		operatingExpensesTag: parseInt64Field,
 		netIncomeTag:         parseInt64Field,
-		totalAssetsTag:         parseInt64Field,
+		totalAssetsTag:       parseInt64Field,
 	}
 }
 
@@ -256,8 +256,6 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 	for listElement := listOfElementLists.Front(); listElement != nil; listElement = listElement.Next() {
 		elementList := listElement.Value.(*list.List)
 
-		// isCorrectContext := false
-		// var fieldToUpdate *int64
 		var contextName string
 		var fieldVal int64
 
@@ -271,7 +269,7 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 
 				filingField, fieldExists := xmlTagToFieldMap[tagName]
 				if fieldExists {
-					 fieldToUpdate = filingField
+					fieldToUpdate = filingField
 				}
 
 				break
@@ -292,7 +290,7 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 			}
 		}
 
-		parsedInt64ElementSlice = 
+		parsedInt64ElementSlice =
 			append(parsedInt64ElementSlice, &parsedInt64Element{context: contextName, value: fieldVal})
 	}
 
@@ -305,7 +303,7 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 		} else {
 			newContext := frp.contextMap[parsedElement.context]
 			// TODO need better way of handling restrictions
-			if newContext.endDate.Year() != 1 && newContext.endDate.Month() - newContext.startDate.Month() != 2 {
+			if newContext.endDate.Year() != 1 && newContext.endDate.Month()-newContext.startDate.Month() != 2 {
 				// only allow quarter periods
 				continue
 			}
@@ -316,7 +314,7 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 				log.Error("Failed to parse contexts for tag <", tagName, "> due to error: ", conErr)
 				return
 			} else if bestContext.name == newContext.name {
-				elementToUse = parsedElement					
+				elementToUse = parsedElement
 			}
 		}
 	}
@@ -328,8 +326,7 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 	// TODO I would love a way to not have to copy/paste this loop and switch statement in every parsing function...
 
-	var currentContext, latestContext string
-	var latestEndDate time.Time
+	var currentContext string
 
 	for listElement := listOfElementLists.Front(); listElement != nil; listElement = listElement.Next() {
 		elementList := listElement.Value.(*list.List)
@@ -389,17 +386,5 @@ func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 		newContext.name = currentContext
 
 		frp.contextMap[currentContext] = newContext
-
-		periodLengthInMonths := int(endDate.Month()) - int(startDate.Month())
-
-		// we only care about the latest quarter for this report
-		if periodLengthInMonths == 2 {
-			if endDate.Unix() > latestEndDate.Unix() {
-				latestEndDate = endDate
-				latestContext = currentContext
-			}
-		}
 	}
-
-	frp.currentContext = latestContext
 }
