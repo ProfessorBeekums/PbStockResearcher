@@ -117,7 +117,6 @@ func TestParseInt64Field(t *testing.T) {
 	parserMap := createParserMap(decoder)
 
 	frp := NewFinancialReportParser("../testData/TestCreateParserMap.xml", &filings.FinancialReport{}, nil)
-	frp.currentContext = "c0_From1Jun2014To31Aug2014"
 
 	frp.contextMap = make(map[string]*context)
 
@@ -129,8 +128,11 @@ func TestParseInt64Field(t *testing.T) {
 	}
 }
 
-func TestCompleteParse(t *testing.T) {
-	frp := NewFinancialReportParser("../testData/rmcf-20140831.xml", &filings.FinancialReport{}, &MockPersister{})
+func TestCompleteParseRMCF_2014_2(t *testing.T) {
+	mockPersister := &MockPersister{}
+	frp := NewFinancialReportParser("../testData/rmcf-20140831.xml", &filings.FinancialReport{}, mockPersister)
+
+	mockPersister.SetFinancialReport(&filings.FinancialReport{CIK: 785815, Year: 2014, Quarter: 1, OperatingCash: 82978})
 
 	frp.Parse()
 
@@ -151,12 +153,22 @@ func TestCompleteParse(t *testing.T) {
 	if fr.TotalAssets != 38651192 {
 		t.Fatal("Expected TotalAssets was 38651192, received: ", fr.TotalAssets)
 	}
+
+	if fr.OperatingCash != 3200000 {
+		t.Fatal("Expected OperatingCash was 3200000, received: ", fr.OperatingCash)
+	}
 }
 
-type MockPersister struct{}
+type MockPersister struct{
+	financialReport *filings.FinancialReport
+}
 
 func (mp *MockPersister) CreateFinancialReport(fr *filings.FinancialReport) {}
 func (mp *MockPersister) UpdateFinancialReport(fr *filings.FinancialReport) {}
 func (mp *MockPersister) GetFinancialReport(cik, year, quarter int64) *filings.FinancialReport {
-	return nil
+	return mp.financialReport
+}
+
+func (mp *MockPersister) SetFinancialReport(newFinancialReport *filings.FinancialReport) {
+	mp.financialReport = newFinancialReport
 }
