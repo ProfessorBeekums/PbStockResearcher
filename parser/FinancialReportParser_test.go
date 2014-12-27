@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/xml"
 	"github.com/ProfessorBeekums/PbStockResearcher/filings"
+	// "github.com/ProfessorBeekums/PbStockResearcher/log"
 	"os"
 	"testing"
 )
@@ -52,23 +53,6 @@ func TestVerifyContext(t *testing.T) {
 
 	if exists {
 		t.Fatal("Context should not exists: ", missingContext)
-	}
-}
-
-func TestParseInt64Field(t *testing.T) {
-	xbrlFile, _ := os.Open("../testData/TestCreateParserMap.xml")
-	fileReader := bufio.NewReader(xbrlFile)
-	decoder := xml.NewDecoder(fileReader)
-
-	parserMap := createParserMap(decoder)
-
-	frp := NewFinancialReportParser("../testData/TestCreateParserMap.xml", &filings.FinancialReport{}, nil)
-	frp.currentContext = "c0_From1Jun2014To31Aug2014"
-
-	parseInt64Field(frp, parserMap[revenueTag])
-
-	if frp.financialReport.Revenue != 9457448 {
-		t.Fatal("Expected revenue was 9457448, received: ", frp.financialReport.Revenue)
 	}
 }
 
@@ -129,6 +113,28 @@ func TestParseContext(t *testing.T) {
 	}
 }
 
+
+
+func TestParseInt64Field(t *testing.T) {
+	xbrlFile, _ := os.Open("../testData/TestCreateParserMap.xml")
+	fileReader := bufio.NewReader(xbrlFile)
+	decoder := xml.NewDecoder(fileReader)
+
+	parserMap := createParserMap(decoder)
+
+	frp := NewFinancialReportParser("../testData/TestCreateParserMap.xml", &filings.FinancialReport{}, nil)
+	frp.currentContext = "c0_From1Jun2014To31Aug2014"
+
+	frp.contextMap = make(map[string]*context)
+
+	parseContext(frp, parserMap[contextTag])
+	parseInt64Field(frp, parserMap[revenueTag])
+
+	if frp.financialReport.Revenue != 9457448 {
+		t.Fatal("Expected revenue was 9457448, received: ", frp.financialReport.Revenue)
+	}
+}
+
 func TestCompleteParse(t *testing.T) {
 	frp := NewFinancialReportParser("../testData/rmcf-20140831.xml", &filings.FinancialReport{}, &MockPersister{})
 
@@ -146,6 +152,10 @@ func TestCompleteParse(t *testing.T) {
 
 	if fr.NetIncome != 877356 {
 		t.Fatal("Expected NetIncome was 8028307, received: ", fr.NetIncome)
+	}
+
+	if fr.TotalAssets != 38651192 {
+		t.Fatal("Expected TotalAssets was 38651192, received: ", fr.TotalAssets)
 	}
 }
 
