@@ -33,8 +33,8 @@ const quarterMonths = 2
 type FinancialReportParser struct {
 	// TODO add in year/quarter so we can verify that we are parsing the right file
 	xbrlFileName string
-	financialReport              *filings.FinancialReport
-	persister                    persist.PersistFinancialReports
+	financialReportRaw              *filings.FinancialReportRaw
+	persister                    persist.PersistFinancialReportsRaw
 	contextMap                   map[string]*context
 	parsedInt64ElementGroup      map[string][]*parsedInt64Element
 }
@@ -60,13 +60,15 @@ type context struct {
 type XbrlElementParser func(frp *FinancialReportParser, listOfElementLists *list.List)
 
 var parseFunctionMap map[string]XbrlElementParser
-var xmlTagToFieldMap map[string]*int64
+// var xmlTagToFieldMap map[string]*int64
 
 // this is a map for faster access since we only want to check if things exist
 var variablePeriodTags map[string]bool = map[string]bool{
 	cashFromOperatingActivitiesTag: true,
 }
 
+// TODO this probably won't scale in development. May need to break out and control via datastore
+// reverse this! one list per function for tags that function covers
 func initializeParseFunctionMap() {
 	parseFunctionMap = map[string]XbrlElementParser{
 		contextTag:           parseContext,
@@ -79,17 +81,17 @@ func initializeParseFunctionMap() {
 	}
 }
 
-func initializeXmlTagToFieldMap(parser *FinancialReportParser) {
-	// there are potentially multiple possible tags for the same field
-	xmlTagToFieldMap = map[string]*int64{
-		revenueTag:           &parser.financialReport.Revenue,
-		costsAndExpensesTag:  &parser.financialReport.OperatingExpense,
-		operatingExpensesTag: &parser.financialReport.OperatingExpense,
-		netIncomeTag:         &parser.financialReport.NetIncome,
-		totalAssetsTag:       &parser.financialReport.TotalAssets,
-		cashFromOperatingActivitiesTag: &parser.financialReport.OperatingCash,
-	}
-}
+// func initializeXmlTagToFieldMap(parser *FinancialReportParser) {
+// 	// there are potentially multiple possible tags for the same field
+// 	xmlTagToFieldMap = map[string]*int64{
+// 		revenueTag:           &parser.financialReport.Revenue,
+// 		costsAndExpensesTag:  &parser.financialReport.OperatingExpense,
+// 		operatingExpensesTag: &parser.financialReport.OperatingExpense,
+// 		netIncomeTag:         &parser.financialReport.NetIncome,
+// 		totalAssetsTag:       &parser.financialReport.TotalAssets,
+// 		cashFromOperatingActivitiesTag: &parser.financialReport.OperatingCash,
+// 	}
+// }
 
 // This function is unfortunate. Some fields (e.g. cashflow) in the xbrl are not asof or quarterly numbers, but 
 // are variable up until 12 months. So these can be 3, 6, 9, or 12 month figures. To actually get quarterly data
@@ -103,23 +105,23 @@ func isVariablePeriodTag(tagName string) bool {
 }
 
 // Creates a new FinancialReportParser with all the necessary intializations
-func NewFinancialReportParser(xbrlFileName string, fr *filings.FinancialReport, persister persist.PersistFinancialReports) *FinancialReportParser {
+func NewFinancialReportParser(xbrlFileName string, frr *filings.FinancialReportRaw, persister persist.PersistFinancialReportsRaw) *FinancialReportParser {
 	initializeParseFunctionMap()
 
 	parser := &FinancialReportParser{xbrlFileName: xbrlFileName}
-	parser.financialReport = fr
+	parser.financialReportRaw = frr
 	parser.persister = persister
 	parser.contextMap = make(map[string]*context)
 	parser.parsedInt64ElementGroup = make(map[string][]*parsedInt64Element)
 
-	initializeXmlTagToFieldMap(parser)
+	// initializeXmlTagToFieldMap(parser)
 
 	return parser
 }
 
 /// Returns a FinancialReport. Calling this before Parse() is useless!
-func (frp *FinancialReportParser) GetFinancialReport() *filings.FinancialReport {
-	return frp.financialReport
+func (frp *FinancialReportParser) GetFinancialReport() *filings.FinancialReportRaw {
+	return frp.financialReportRaw
 }
 
 // Parses the xbrl file that this FinancialReportParser was initialized with. The results are stored
@@ -158,15 +160,15 @@ func (frp *FinancialReportParser) Parse() {
 			}
 		}
 
-		frErr := frp.financialReport.IsValid()
+		// frErr := frp.financialReport.IsValid()
 
-		if frErr == nil {
-			frp.persister.CreateFinancialReport(frp.financialReport)
-		} else {
-			log.Error("FinancialReport with CIK <", frp.financialReport.CIK,
-				"> year <", frp.financialReport.Year,
-				"> quarter <", frp.financialReport.Quarter, "> is mising fields: ", frErr)
-		}
+		// if frErr == nil {
+			frp.persister.InsertUpdateRawReport(frp.financialReportRaw)
+		// } else {
+		// 	log.Error("FinancialReport with CIK <", frp.financialReport.CIK,
+		// 		"> year <", frp.financialReport.Year,
+		// 		"> quarter <", frp.financialReport.Quarter, "> is mising fields: ", frErr)
+		// }
 
 	}
 }
@@ -275,7 +277,7 @@ func pickRecentContext(context1, context2 *context) (*context, error) {
 }
 
 func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) {
-	var fieldToUpdate *int64
+	// var fieldToUpdate *int64
 
 	parsedInt64ElementSlice := []*parsedInt64Element{}
 	var tagName string
@@ -295,10 +297,10 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 				tagName = element.Name.Local
 				contextName = getContext(element.Attr)
 
-				filingField, fieldExists := xmlTagToFieldMap[tagName]
-				if fieldExists {
-					fieldToUpdate = filingField
-				}
+				// filingField, fieldExists := xmlTagToFieldMap[tagName]
+				// if fieldExists {
+				// 	fieldToUpdate = filingField
+				// }
 
 				break
 			case string:
@@ -351,27 +353,35 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 
 	if(isVariablePeriod == false) {
 		// the easy case
-		*fieldToUpdate = elementToUse.value		
+		// *fieldToUpdate = elementToUse.value	
+		frp.financialReportRaw.RawFields[tagName] = elementToUse.value	
 	} else {
 		// load the previous quarter and subtract until we have only one quarter of data left
-		periodContext := frp.contextMap[elementToUse.context]
-		periodMonths := periodContext.endDate.Month() - periodContext.startDate.Month()
+		// periodContext := frp.contextMap[elementToUse.context]
+		// periodMonths := periodContext.endDate.Month() - periodContext.startDate.Month()
 
-		valueToUpdateWith := elementToUse.value
+		// valueToUpdateWith := elementToUse.value
 
-		for periodMonths > quarterMonths {
-			prevYear, prevQuarter := frp.financialReport.GetPreviousQuarter()
-			previousFr := frp.persister.GetFinancialReport(frp.financialReport.CIK, prevYear, prevQuarter)
-			periodMonths = periodMonths - 3
+		// for periodMonths > quarterMonths {
+		// 	prevYear, prevQuarter := frp.financialReportRaw.GetPreviousQuarter()
+		// 	previousFr := frp.persister.GetRawReport(frp.financialReportRaw.CIK, prevYear, prevQuarter)
+		// 	periodMonths = periodMonths - 3
+
+		// 	if previousFr == nil {
+		// 		log.Error("Could not calculate <", tagName, "> for CIK <", frp.financialReportRaw.CIK, 
+		// 			"> and year <", frp.financialReportRaw.Year, "> and quarter <", frp.financialReportRaw.Quarter, 
+		// 			"> because no previous report")
+		// 		break
+		// 	}
 
 			// TODO - YUCH! I don't like this and I don't want to use reflection. Figure out a better way
-			if tagName == cashFromOperatingActivitiesTag {
-				valueToUpdateWith = valueToUpdateWith - previousFr.OperatingCash
-			}
+			// if tagName == cashFromOperatingActivitiesTag {
+			// 	valueToUpdateWith = valueToUpdateWith - previousFr.OperatingCash
+			// }
 			// END digusting code
-		}
+		// }
 
-		*fieldToUpdate = valueToUpdateWith
+		// *fieldToUpdate = valueToUpdateWith
 	}
 }
 

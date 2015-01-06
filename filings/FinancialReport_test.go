@@ -5,7 +5,7 @@ import (
 )
 
 func TestGetPreviousQuarter(t *testing.T) {
-	fr := &FinancialReport{Year: 2013, Quarter: 4}
+	fr := &FinancialReportRaw{Year: 2013, Quarter: 4}
 
 	year, quarter := fr.GetPreviousQuarter()
 
@@ -17,7 +17,7 @@ func TestGetPreviousQuarter(t *testing.T) {
 		t.Fatal("GetPreviousQuarter expected quarter 3, got: ", quarter)
 	}
 
-	fr = &FinancialReport{Year: 2013, Quarter: 1}
+	fr = &FinancialReportRaw{Year: 2013, Quarter: 1}
 
 	year, quarter = fr.GetPreviousQuarter()
 

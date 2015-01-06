@@ -9,14 +9,6 @@ type FinancialReport struct {
 	OperatingCash int64
 }
 
-func (fr *FinancialReport) GetPreviousQuarter() (int64, int64) {
-	if fr.Quarter == 1 {
-		return fr.Year - 1, 4
-	} else {
-		return fr.Year, fr.Quarter - 1
-	}
-}
-
 func (fr *FinancialReport) IsValid() error {
 	missingFields := ""
 
@@ -33,10 +25,9 @@ func (fr *FinancialReport) IsValid() error {
 		missingFields += "NetIncome,"
 	}
 
-
-	// if(fr.TotalAssets == 0) {
-	// 	missingFields += "TotalAssets,"
-	// }
+	if(fr.TotalAssets == 0) {
+		missingFields += "TotalAssets,"
+	}
 
 
 	// if(fr.TotalLiabilities == 0) {
@@ -48,5 +39,18 @@ func (fr *FinancialReport) IsValid() error {
 		return errors.New(missingFields) 
 	} else {
 		return nil
+	}
+}
+
+type FinancialReportRaw struct {
+	CIK, Year, Quarter int64
+	RawFields map[string]int64
+}
+
+func (frr *FinancialReportRaw) GetPreviousQuarter() (int64, int64) {
+	if frr.Quarter == 1 {
+		return frr.Year - 1, 4
+	} else {
+		return frr.Year, frr.Quarter - 1
 	}
 }

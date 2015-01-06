@@ -8,6 +8,7 @@ import (
 )
 
 const financialReportsCollection = "FinancialReport"
+const financialReportsRawCollection = "FinancialReportRaw"
 const companyCollection = "Company"
 const reportFilesCollection = "ReportFiles"
 
@@ -33,6 +34,14 @@ type MongoDbFinancialReports struct {
 
 func NewMongoDbFinancialReports(host, database string) *MongoDbFinancialReports {
 	return &MongoDbFinancialReports{host: host, database: database}
+}
+
+type MongoDbFinancialReportsRaw struct {
+	host, database string
+}
+
+func NewMongoDbFinancialReportsRaw(host, database string) *MongoDbFinancialReportsRaw {
+	return &MongoDbFinancialReportsRaw{host: host, database: database}
 }
 
 func getSessionAndCollection(host, database, collStr string) (*mgo.Session, *mgo.Collection) {
@@ -160,4 +169,33 @@ func (mdfr *MongoDbFinancialReports) GetFinancialReport(cik, year, quarter int64
 	}
 
 	return report
+}
+
+func (mdfrr *MongoDbFinancialReportsRaw) InsertUpdateRawReport(rawReport *filings.FinancialReportRaw) {
+	session, coll :=
+		getSessionAndCollection(mdfrr.host, mdfrr.database, financialReportsRawCollection)
+
+	if session != nil {
+		defer session.Close()
+
+		_, upErr := coll.Upsert(bson.M{"cik": rawReport.CIK, "year": rawReport.Year, "quarter": rawReport.Quarter}, rawReport)
+		if upErr != nil {
+			log.Error("Failed to upsert raw report with cik <", rawReport.CIK,
+				"> due to error: ", upErr)
+		}
+	}
+}
+
+func (mdfrr *MongoDbFinancialReportsRaw) GetRawReport(cik, year, quarter int64) *filings.FinancialReportRaw {
+	session, coll :=
+		getSessionAndCollection(mdfrr.host, mdfrr.database, financialReportsRawCollection)
+	rawReport := &filings.FinancialReportRaw{}
+
+	if session != nil {
+		defer session.Close()
+
+		coll.Find(bson.M{"cik": cik, "year": year, "quarter": quarter}).One(&rawReport)
+	}
+
+	return rawReport
 }
