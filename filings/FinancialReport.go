@@ -56,3 +56,28 @@ func (frr *FinancialReportRaw) GetPreviousQuarter() (int64, int64) {
 		return frr.Year, frr.Quarter - 1
 	}
 }
+
+type RawFieldNameList interface {
+	GetInt64RawFieldNames() []string
+	GetVariablePeriodFieldNames() []string
+}
+
+// This could be done with a db table, but I like the idea of having something so critical in source control...
+type BasicRawFieldNameList struct{}
+
+func (brfnl *BasicRawFieldNameList) GetInt64RawFieldNames() []string {
+	return []string{
+		"Revenues",
+		"CostsAndExpenses",
+		"OperatingExpenses",
+		"NetIncomeLoss",
+		"Assets",
+		"NetCashProvidedByUsedInOperatingActivities",
+	}
+}
+
+func (brfnl *BasicRawFieldNameList) GetVariablePeriodFieldNames() []string {
+	return []string{
+		"NetCashProvidedByUsedInOperatingActivities",
+	}
+}

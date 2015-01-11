@@ -15,15 +15,6 @@ import (
 )
 
 const contextTag = "context"
-const revenueTag = "Revenues"
-
-const costsAndExpensesTag = "CostsAndExpenses"
-const operatingExpensesTag = "OperatingExpenses"
-const netIncomeTag = "NetIncomeLoss"
-
-const totalAssetsTag = "Assets"
-
-const cashFromOperatingActivitiesTag = "NetCashProvidedByUsedInOperatingActivities"
 
 const shortFormDate = "2006-01-02"
 
@@ -32,11 +23,11 @@ const quarterMonths = 2
 
 type FinancialReportParser struct {
 	// TODO add in year/quarter so we can verify that we are parsing the right file
-	xbrlFileName string
-	financialReportRaw              *filings.FinancialReportRaw
-	persister                    persist.PersistFinancialReportsRaw
-	contextMap                   map[string]*context
-	parsedInt64ElementGroup      map[string][]*parsedInt64Element
+	xbrlFileName            string
+	financialReportRaw      *filings.FinancialReportRaw
+	persister               persist.PersistFinancialReportsRaw
+	contextMap              map[string]*context
+	parsedInt64ElementGroup map[string][]*parsedInt64Element
 }
 
 type parsedInt64Element struct {
@@ -54,27 +45,30 @@ type XbrlElementParser func(frp *FinancialReportParser, listOfElementLists *list
 var parseFunctionMap map[string]XbrlElementParser
 
 // this is a map for faster access since we only want to check if things exist
-var variablePeriodTags map[string]bool = map[string]bool{
-	cashFromOperatingActivitiesTag: true,
-}
+var variablePeriodTags map[string]bool
 
-// TODO this probably won't scale in development. May need to break out and control via datastore
-// reverse this! one list per function for tags that function covers
-func initializeParseFunctionMap() {
+func initializeParseFunctionMap(rawFieldNameList filings.RawFieldNameList) {
 	parseFunctionMap = map[string]XbrlElementParser{
-		contextTag:           parseContext,
-		revenueTag:           parseInt64Field,
-		costsAndExpensesTag:  parseInt64Field,
-		operatingExpensesTag: parseInt64Field,
-		netIncomeTag:         parseInt64Field,
-		totalAssetsTag:       parseInt64Field,
-		cashFromOperatingActivitiesTag: parseInt64Field,
+		contextTag: parseContext,
+	}
+
+	int64RawFields := rawFieldNameList.GetInt64RawFieldNames()
+
+	for _, fieldName := range int64RawFields {
+		parseFunctionMap[fieldName] = parseInt64Field
+	}
+
+	variablePeriodTags = map[string]bool{}
+
+	variablePeriodFieldNames := rawFieldNameList.GetVariablePeriodFieldNames()
+	for _, fieldName := range variablePeriodFieldNames {
+		variablePeriodTags[fieldName] = true
 	}
 }
 
-// This function is unfortunate. Some fields (e.g. cashflow) in the xbrl are not asof or quarterly numbers, but 
+// This function is unfortunate. Some fields (e.g. cashflow) in the xbrl are not asof or quarterly numbers, but
 // are variable up until 12 months. So these can be 3, 6, 9, or 12 month figures. To actually get quarterly data
-// we need to subtract from the previous quarter. That makes cashflow harder to query on, but I guess no one else 
+// we need to subtract from the previous quarter. That makes cashflow harder to query on, but I guess no one else
 // cares because they tend to eyeball it? Also, possibly other research tools (e.g. Google Finance) don't like the
 // idea of depending on a previous filing to display filings for a single quarter. I have no such qualms.
 func isVariablePeriodTag(tagName string) bool {
@@ -84,8 +78,11 @@ func isVariablePeriodTag(tagName string) bool {
 }
 
 // Creates a new FinancialReportParser with all the necessary intializations
-func NewFinancialReportParser(xbrlFileName string, frr *filings.FinancialReportRaw, persister persist.PersistFinancialReportsRaw) *FinancialReportParser {
-	initializeParseFunctionMap()
+func NewFinancialReportParser(xbrlFileName string, frr *filings.FinancialReportRaw,
+	persister persist.PersistFinancialReportsRaw,
+	rawFieldNameList filings.RawFieldNameList) *FinancialReportParser {
+
+	initializeParseFunctionMap(rawFieldNameList)
 
 	parser := &FinancialReportParser{xbrlFileName: xbrlFileName}
 	parser.financialReportRaw = frr
@@ -297,7 +294,7 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 		} else {
 			newContext := frp.contextMap[parsedElement.context]
 			if isVariablePeriod == false &&
-				newContext.endDate.Year() != 1 && 
+				newContext.endDate.Year() != 1 &&
 				newContext.endDate.Month()-newContext.startDate.Month() != quarterMonths {
 				// only allow quarter periods
 				continue
@@ -314,9 +311,9 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 		}
 	}
 
-	if(isVariablePeriod == false) {
+	if isVariablePeriod == false {
 		// the easy case
-		frp.financialReportRaw.RawFields[tagName] = elementToUse.value	
+		frp.financialReportRaw.RawFields[tagName] = elementToUse.value
 	} else {
 		// load the previous quarter and subtract until we have only one quarter of data left
 		periodContext := frp.contextMap[elementToUse.context]
@@ -330,8 +327,8 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 			periodMonths = periodMonths - 3
 
 			if previousFr == nil {
-				log.Error("Could not calculate <", tagName, "> for CIK <", frp.financialReportRaw.CIK, 
-					"> and year <", frp.financialReportRaw.Year, "> and quarter <", frp.financialReportRaw.Quarter, 
+				log.Error("Could not calculate <", tagName, "> for CIK <", frp.financialReportRaw.CIK,
+					"> and year <", frp.financialReportRaw.Year, "> and quarter <", frp.financialReportRaw.Quarter,
 					"> because no previous report")
 				break
 			}
@@ -340,8 +337,8 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 			if previousValExists {
 				valueToUpdateWith = valueToUpdateWith - previousVal
 			} else {
-				log.Error("Could not calculate <", tagName, "> for CIK <", frp.financialReportRaw.CIK, 
-					"> and year <", frp.financialReportRaw.Year, "> and quarter <", frp.financialReportRaw.Quarter, 
+				log.Error("Could not calculate <", tagName, "> for CIK <", frp.financialReportRaw.CIK,
+					"> and year <", frp.financialReportRaw.Year, "> and quarter <", frp.financialReportRaw.Quarter,
 					"> because missing tag name")
 				break
 			}

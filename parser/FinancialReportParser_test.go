@@ -117,14 +117,14 @@ func TestParseInt64Field(t *testing.T) {
 	rawReport := &filings.FinancialReportRaw{}
 	rawReport.RawFields = make(map[string]int64)
 
-	frp := NewFinancialReportParser("../testData/TestCreateParserMap.xml", rawReport, nil)
+	frp := NewFinancialReportParser("../testData/TestCreateParserMap.xml", rawReport, nil, &filings.BasicRawFieldNameList{})
 
 	frp.contextMap = make(map[string]*context)
 
 	parseContext(frp, parserMap[contextTag])
-	parseInt64Field(frp, parserMap[revenueTag])
+	parseInt64Field(frp, parserMap["Revenues"])
 
-	rawRev := frp.financialReportRaw.RawFields[revenueTag]
+	rawRev := frp.financialReportRaw.RawFields["Revenues"]
 	if rawRev != 9457448 {
 		t.Fatal("Expected revenue was 9457448, received: ", rawRev)
 	}
@@ -132,7 +132,8 @@ func TestParseInt64Field(t *testing.T) {
 
 func TestCompleteParseRMCF_2014_2(t *testing.T) {
 	mockPersister := &MockPersister{}
-	frp := NewFinancialReportParser("../testData/rmcf-20140831.xml", &filings.FinancialReportRaw{CIK: 785815, Year: 2014, Quarter: 2}, mockPersister)
+	frp := NewFinancialReportParser("../testData/rmcf-20140831.xml", &filings.FinancialReportRaw{CIK: 785815, Year: 2014, Quarter: 2}, 
+		mockPersister, &filings.BasicRawFieldNameList{})
 
 	frp.financialReportRaw.RawFields = make(map[string]int64)
 
