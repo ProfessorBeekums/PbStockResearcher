@@ -107,8 +107,6 @@ func TestParseContext(t *testing.T) {
 	}
 }
 
-
-
 func TestParseInt64Field(t *testing.T) {
 	xbrlFile, _ := os.Open("../testData/TestCreateParserMap.xml")
 	fileReader := bufio.NewReader(xbrlFile)
@@ -130,53 +128,53 @@ func TestParseInt64Field(t *testing.T) {
 	if rawRev != 9457448 {
 		t.Fatal("Expected revenue was 9457448, received: ", rawRev)
 	}
-
-	// if frp.financialReport.Revenue != 9457448 {
-	// 	t.Fatal("Expected revenue was 9457448, received: ", frp.financialReport.Revenue)
-	// }
 }
 
-// func TestCompleteParseRMCF_2014_2(t *testing.T) {
-// 	mockPersister := &MockPersister{}
-// 	frp := NewFinancialReportParser("../testData/rmcf-20140831.xml", &filings.FinancialReport{}, mockPersister)
+func TestCompleteParseRMCF_2014_2(t *testing.T) {
+	mockPersister := &MockPersister{}
+	frp := NewFinancialReportParser("../testData/rmcf-20140831.xml", &filings.FinancialReportRaw{CIK: 785815, Year: 2014, Quarter: 2}, mockPersister)
 
-// 	mockPersister.SetFinancialReport(&filings.FinancialReportRaw{CIK: 785815, Year: 2014, Quarter: 1, OperatingCash: 82978})
+	frp.financialReportRaw.RawFields = make(map[string]int64)
 
-// 	frp.Parse()
+	rawFields := make(map[string]int64)
+	rawFields["NetCashProvidedByUsedInOperatingActivities"] = 82978
 
-	// fr := frp.financialReport
+	mockPersister.SetFinancialReport(&filings.FinancialReportRaw{CIK: 785815, Year: 2014, Quarter: 1, RawFields: rawFields})
 
-	// if fr.Revenue != 9457448 {
-	// 	t.Fatal("Expected revenue was 9457448, received: ", fr.Revenue)
-	// }
+	frp.Parse()
 
-	// if fr.OperatingExpense != 8028307 {
-	// 	t.Fatal("Expected OperatingExpense was 8028307, received: ", fr.OperatingExpense)
-	// }
+	fieldsToValidate := frp.financialReportRaw.RawFields
 
-	// if fr.NetIncome != 877356 {
-	// 	t.Fatal("Expected NetIncome was 8028307, received: ", fr.NetIncome)
-	// }
+	if fieldsToValidate["Revenues"] != 9457448 {
+		t.Fatal("Expected Revenues was 9457448, received: ", fieldsToValidate["Revenues"])
+	}
 
-	// if fr.TotalAssets != 38651192 {
-	// 	t.Fatal("Expected TotalAssets was 38651192, received: ", fr.TotalAssets)
-	// }
+	if fieldsToValidate["CostsAndExpenses"] != 8028307 {
+		t.Fatal("Expected CostsAndExpenses was 8028307, received: ", fieldsToValidate["CostsAndExpenses"])
+	}
 
-	// if fr.OperatingCash != 3200000 {
-	// 	t.Fatal("Expected OperatingCash was 3200000, received: ", fr.OperatingCash)
-	// }
-// }
+	if fieldsToValidate["NetIncomeLoss"] != 877356 {
+		t.Fatal("Expected NetIncomeLoss was 877356, received: ", fieldsToValidate["NetIncomeLoss"])
+	}
+
+	if fieldsToValidate["Assets"] != 38651192 {
+		t.Fatal("Expected Assets was 38651192, received: ", fieldsToValidate["Assets"])
+	}
+
+	if fieldsToValidate["NetCashProvidedByUsedInOperatingActivities"] != 3200000 {
+		t.Fatal("Expected NetCashProvidedByUsedInOperatingActivities was 3200000, received: ", fieldsToValidate["NetCashProvidedByUsedInOperatingActivities"])
+	}
+}
 
 type MockPersister struct{
-	financialReport *filings.FinancialReport
+	financialReportRaw *filings.FinancialReportRaw
 }
 
-func (mp *MockPersister) CreateFinancialReport(fr *filings.FinancialReport) {}
-func (mp *MockPersister) UpdateFinancialReport(fr *filings.FinancialReport) {}
-func (mp *MockPersister) GetFinancialReport(cik, year, quarter int64) *filings.FinancialReport {
-	return mp.financialReport
+func (mp *MockPersister) InsertUpdateRawReport(fr *filings.FinancialReportRaw) {}
+func (mp *MockPersister) GetRawReport(cik, year, quarter int64) *filings.FinancialReportRaw {
+	return mp.financialReportRaw
 }
 
-func (mp *MockPersister) SetFinancialReport(newFinancialReport *filings.FinancialReport) {
-	mp.financialReport = newFinancialReport
+func (mp *MockPersister) SetFinancialReport(newFinancialReport *filings.FinancialReportRaw) {
+	mp.financialReportRaw = newFinancialReport
 }

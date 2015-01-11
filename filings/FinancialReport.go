@@ -2,6 +2,8 @@ package filings
 
 import "errors"
 
+// TODO this will need a walk script that'll go through raw reports and parse these. 
+// there should be an option to only create new and to override all
 type FinancialReport struct {
 	CIK, Year, Quarter int64
 	Revenue, OperatingExpense, NetIncome  int64

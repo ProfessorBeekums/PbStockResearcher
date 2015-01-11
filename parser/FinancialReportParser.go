@@ -39,14 +39,6 @@ type FinancialReportParser struct {
 	parsedInt64ElementGroup      map[string][]*parsedInt64Element
 }
 
-/*
- needs:
- - ability to hold multiple elements until the end
- - ability to load *previous* quarters data - Does this mean another table for data?! or just dependency?
- - need to store each context that exists for a tag. then parse them out
- - each tag should only have ONE type of context, period or instant. period context can be 3, 6, 9, or 12 months
- -- balance sheet uses as of, earnings uses period, cash flow is just messed up period
-*/
 type parsedInt64Element struct {
 	context string
 	value   int64
@@ -60,7 +52,6 @@ type context struct {
 type XbrlElementParser func(frp *FinancialReportParser, listOfElementLists *list.List)
 
 var parseFunctionMap map[string]XbrlElementParser
-// var xmlTagToFieldMap map[string]*int64
 
 // this is a map for faster access since we only want to check if things exist
 var variablePeriodTags map[string]bool = map[string]bool{
@@ -80,18 +71,6 @@ func initializeParseFunctionMap() {
 		cashFromOperatingActivitiesTag: parseInt64Field,
 	}
 }
-
-// func initializeXmlTagToFieldMap(parser *FinancialReportParser) {
-// 	// there are potentially multiple possible tags for the same field
-// 	xmlTagToFieldMap = map[string]*int64{
-// 		revenueTag:           &parser.financialReport.Revenue,
-// 		costsAndExpensesTag:  &parser.financialReport.OperatingExpense,
-// 		operatingExpensesTag: &parser.financialReport.OperatingExpense,
-// 		netIncomeTag:         &parser.financialReport.NetIncome,
-// 		totalAssetsTag:       &parser.financialReport.TotalAssets,
-// 		cashFromOperatingActivitiesTag: &parser.financialReport.OperatingCash,
-// 	}
-// }
 
 // This function is unfortunate. Some fields (e.g. cashflow) in the xbrl are not asof or quarterly numbers, but 
 // are variable up until 12 months. So these can be 3, 6, 9, or 12 month figures. To actually get quarterly data
@@ -160,16 +139,7 @@ func (frp *FinancialReportParser) Parse() {
 			}
 		}
 
-		// frErr := frp.financialReport.IsValid()
-
-		// if frErr == nil {
-			frp.persister.InsertUpdateRawReport(frp.financialReportRaw)
-		// } else {
-		// 	log.Error("FinancialReport with CIK <", frp.financialReport.CIK,
-		// 		"> year <", frp.financialReport.Year,
-		// 		"> quarter <", frp.financialReport.Quarter, "> is mising fields: ", frErr)
-		// }
-
+		frp.persister.InsertUpdateRawReport(frp.financialReportRaw)
 	}
 }
 
@@ -277,8 +247,6 @@ func pickRecentContext(context1, context2 *context) (*context, error) {
 }
 
 func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) {
-	// var fieldToUpdate *int64
-
 	parsedInt64ElementSlice := []*parsedInt64Element{}
 	var tagName string
 
@@ -296,11 +264,6 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 			case xml.StartElement:
 				tagName = element.Name.Local
 				contextName = getContext(element.Attr)
-
-				// filingField, fieldExists := xmlTagToFieldMap[tagName]
-				// if fieldExists {
-				// 	fieldToUpdate = filingField
-				// }
 
 				break
 			case string:
@@ -353,35 +316,38 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 
 	if(isVariablePeriod == false) {
 		// the easy case
-		// *fieldToUpdate = elementToUse.value	
 		frp.financialReportRaw.RawFields[tagName] = elementToUse.value	
 	} else {
 		// load the previous quarter and subtract until we have only one quarter of data left
-		// periodContext := frp.contextMap[elementToUse.context]
-		// periodMonths := periodContext.endDate.Month() - periodContext.startDate.Month()
+		periodContext := frp.contextMap[elementToUse.context]
+		periodMonths := periodContext.endDate.Month() - periodContext.startDate.Month()
 
-		// valueToUpdateWith := elementToUse.value
+		valueToUpdateWith := elementToUse.value
 
-		// for periodMonths > quarterMonths {
-		// 	prevYear, prevQuarter := frp.financialReportRaw.GetPreviousQuarter()
-		// 	previousFr := frp.persister.GetRawReport(frp.financialReportRaw.CIK, prevYear, prevQuarter)
-		// 	periodMonths = periodMonths - 3
+		for periodMonths > quarterMonths {
+			prevYear, prevQuarter := frp.financialReportRaw.GetPreviousQuarter()
+			previousFr := frp.persister.GetRawReport(frp.financialReportRaw.CIK, prevYear, prevQuarter)
+			periodMonths = periodMonths - 3
 
-		// 	if previousFr == nil {
-		// 		log.Error("Could not calculate <", tagName, "> for CIK <", frp.financialReportRaw.CIK, 
-		// 			"> and year <", frp.financialReportRaw.Year, "> and quarter <", frp.financialReportRaw.Quarter, 
-		// 			"> because no previous report")
-		// 		break
-		// 	}
+			if previousFr == nil {
+				log.Error("Could not calculate <", tagName, "> for CIK <", frp.financialReportRaw.CIK, 
+					"> and year <", frp.financialReportRaw.Year, "> and quarter <", frp.financialReportRaw.Quarter, 
+					"> because no previous report")
+				break
+			}
 
-			// TODO - YUCH! I don't like this and I don't want to use reflection. Figure out a better way
-			// if tagName == cashFromOperatingActivitiesTag {
-			// 	valueToUpdateWith = valueToUpdateWith - previousFr.OperatingCash
-			// }
-			// END digusting code
-		// }
+			previousVal, previousValExists := previousFr.RawFields[tagName]
+			if previousValExists {
+				valueToUpdateWith = valueToUpdateWith - previousVal
+			} else {
+				log.Error("Could not calculate <", tagName, "> for CIK <", frp.financialReportRaw.CIK, 
+					"> and year <", frp.financialReportRaw.Year, "> and quarter <", frp.financialReportRaw.Quarter, 
+					"> because missing tag name")
+				break
+			}
+		}
 
-		// *fieldToUpdate = valueToUpdateWith
+		frp.financialReportRaw.RawFields[tagName] = valueToUpdateWith
 	}
 }
 
