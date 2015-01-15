@@ -31,9 +31,25 @@ func (fr *FinancialReport) IsValid() error {
 		missingFields += "TotalAssets,"
 	}
 
-	// if(fr.TotalLiabilities == 0) {
-	// 	missingFields += "TotalLiabilities,"
-	// }
+	if fr.TotalLiabilities == 0 {
+		missingFields += "TotalLiabilities,"
+	}
+
+	if fr.CurrentAssets == 0 {
+		missingFields += "CurrentAssets,"
+	}
+
+	if fr.CurrentLiabilities == 0 {
+		missingFields += "CurrentLiabilities,"
+	}
+
+	if fr.OperatingCash == 0 {
+		missingFields += "OperatingCash,"
+	}
+
+	if fr.CapitalExpenditures == 0 {
+		missingFields += "CapitalExpenditures,"
+	}
 
 	if len(missingFields) > 0 {
 		return errors.New(missingFields)
