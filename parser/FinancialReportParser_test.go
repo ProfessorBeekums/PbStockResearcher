@@ -3,6 +3,7 @@ package parser
 import (
 	"bufio"
 	"encoding/xml"
+	//"fmt"
 	"github.com/ProfessorBeekums/PbStockResearcher/filings"
 	// "github.com/ProfessorBeekums/PbStockResearcher/log"
 	"os"
@@ -132,7 +133,7 @@ func TestParseInt64Field(t *testing.T) {
 
 func TestCompleteParseRMCF_2014_2(t *testing.T) {
 	mockPersister := &MockPersister{}
-	frp := NewFinancialReportParser("../testData/rmcf-20140831.xml", &filings.FinancialReportRaw{CIK: 785815, Year: 2014, Quarter: 2}, 
+	frp := NewFinancialReportParser("../testData/rmcf-20140831.xml", &filings.FinancialReportRaw{CIK: 785815, Year: 2014, Quarter: 2},
 		mockPersister, &filings.BasicRawFieldNameList{})
 
 	frp.financialReportRaw.RawFields = make(map[string]int64)
@@ -147,27 +148,56 @@ func TestCompleteParseRMCF_2014_2(t *testing.T) {
 	fieldsToValidate := frp.financialReportRaw.RawFields
 
 	if fieldsToValidate["Revenues"] != 9457448 {
-		t.Fatal("Expected Revenues was 9457448, received: ", fieldsToValidate["Revenues"])
+		t.Fatal("Expected Raw Revenues was 9457448, received: ", fieldsToValidate["Revenues"])
 	}
 
 	if fieldsToValidate["CostsAndExpenses"] != 8028307 {
-		t.Fatal("Expected CostsAndExpenses was 8028307, received: ", fieldsToValidate["CostsAndExpenses"])
+		t.Fatal("Expected Raw CostsAndExpenses was 8028307, received: ", fieldsToValidate["CostsAndExpenses"])
 	}
 
 	if fieldsToValidate["NetIncomeLoss"] != 877356 {
-		t.Fatal("Expected NetIncomeLoss was 877356, received: ", fieldsToValidate["NetIncomeLoss"])
+		t.Fatal("Expected Raw NetIncomeLoss was 877356, received: ", fieldsToValidate["NetIncomeLoss"])
 	}
 
 	if fieldsToValidate["Assets"] != 38651192 {
-		t.Fatal("Expected Assets was 38651192, received: ", fieldsToValidate["Assets"])
+		t.Fatal("Expected Raw Assets was 38651192, received: ", fieldsToValidate["Assets"])
 	}
 
 	if fieldsToValidate["NetCashProvidedByUsedInOperatingActivities"] != 3200000 {
-		t.Fatal("Expected NetCashProvidedByUsedInOperatingActivities was 3200000, received: ", fieldsToValidate["NetCashProvidedByUsedInOperatingActivities"])
+		t.Fatal("Expected Raw NetCashProvidedByUsedInOperatingActivities was 3200000, received: ", fieldsToValidate["NetCashProvidedByUsedInOperatingActivities"])
+	}
+
+	fr := frp.GetFinancialReport()
+	if fr.Revenue != 9457448 {
+		t.Fatal("Expected Revenue was 9457448, received: ", fr.Revenue)
+	}
+
+	if fr.OperatingExpense != 8028307 {
+		t.Fatal("Expected OperatingExpense was 8028307, received: ", fr.OperatingExpense)
+	}
+
+	if fr.TotalAssets != 38651192 {
+		t.Fatal("Expected TotalAssets was 38651192, received: ", fr.TotalAssets)
+	}
+
+	if fr.OperatingCash != 3200000 {
+		t.Fatal("Expected OperatingCash was 3200000, received: ", fr.OperatingCash)
+	}
+
+	if fr.CurrentAssets != 19435429 {
+		t.Fatal("Expected CurrentAssets was 19435429, received: ", fr.CurrentAssets)
+	}
+
+	if fr.CurrentLiabilities != 8223763 {
+		t.Fatal("Expected CurrentAssets was 8223763, received: ", fr.CurrentLiabilities)
+	}
+
+	if fr.TotalLiabilities != 14979344 {
+		t.Fatal("Expected TotalLiabilities was 14979344, received: ", fr.TotalLiabilities)
 	}
 }
 
-type MockPersister struct{
+type MockPersister struct {
 	financialReportRaw *filings.FinancialReportRaw
 }
 

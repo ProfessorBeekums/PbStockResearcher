@@ -96,8 +96,31 @@ func NewFinancialReportParser(xbrlFileName string, frr *filings.FinancialReportR
 }
 
 /// Returns a FinancialReport. Calling this before Parse() is useless!
-func (frp *FinancialReportParser) GetFinancialReport() *filings.FinancialReportRaw {
+func (frp *FinancialReportParser) GetFinancialReportRaw() *filings.FinancialReportRaw {
 	return frp.financialReportRaw
+}
+
+func (frp *FinancialReportParser) GetFinancialReport() *filings.FinancialReport {
+	frr := frp.financialReportRaw
+	financialReport :=
+		&filings.FinancialReport{CIK: frr.CIK, Year: frr.Year, Quarter: frr.Quarter}
+
+	mappingInterface := &filings.BasicRawToScreenableMapping{}
+	mapping := mappingInterface.GetRawToScreenableMapping(financialReport)
+
+	for screenableField, rawFields := range mapping {
+		var fieldVal int64 = 0
+		for _, rawFieldName := range rawFields {
+			val, exists := frr.RawFields[rawFieldName]
+			if exists {
+				fieldVal += val
+			}
+		}
+
+		*screenableField = fieldVal
+	}
+
+	return financialReport
 }
 
 // Parses the xbrl file that this FinancialReportParser was initialized with. The results are stored
