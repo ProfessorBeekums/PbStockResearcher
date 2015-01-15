@@ -140,6 +140,7 @@ func TestCompleteParseRMCF_2014_2(t *testing.T) {
 
 	rawFields := make(map[string]int64)
 	rawFields["NetCashProvidedByUsedInOperatingActivities"] = 82978
+	rawFields["PaymentsToAcquirePropertyPlantAndEquipment"] = 98023
 
 	mockPersister.SetFinancialReport(&filings.FinancialReportRaw{CIK: 785815, Year: 2014, Quarter: 1, RawFields: rawFields})
 
@@ -194,6 +195,10 @@ func TestCompleteParseRMCF_2014_2(t *testing.T) {
 
 	if fr.TotalLiabilities != 14979344 {
 		t.Fatal("Expected TotalLiabilities was 14979344, received: ", fr.TotalLiabilities)
+	}
+
+	if fr.CapitalExpenditures != 300000 {
+		t.Fatal("Expected CapitalExpenditures was 300000, received: ", fr.CapitalExpenditures)
 	}
 }
 

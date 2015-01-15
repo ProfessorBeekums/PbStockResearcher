@@ -8,7 +8,7 @@ type FinancialReport struct {
 	CIK, Year, Quarter                                               int64
 	Revenue, OperatingExpense, NetIncome                             int64
 	CurrentAssets, TotalAssets, CurrentLiabilities, TotalLiabilities int64
-	OperatingCash                                                    int64
+	OperatingCash, CapitalExpenditures                               int64
 }
 
 func (fr *FinancialReport) IsValid() error {
@@ -69,18 +69,22 @@ func (brfnl *BasicRawFieldNameList) GetInt64RawFieldNames() []string {
 		"CostsAndExpenses",
 		"OperatingExpenses",
 		"NetIncomeLoss",
+
 		"Assets",
-		"NetCashProvidedByUsedInOperatingActivities",
 		"LiabilitiesCurrent",
 		"LongTermDebtNoncurrent",
 		"DeferredTaxLiabilitiesNoncurrent",
 		"AssetsCurrent",
+
+		"NetCashProvidedByUsedInOperatingActivities",
+		"PaymentsToAcquirePropertyPlantAndEquipment",
 	}
 }
 
 func (brfnl *BasicRawFieldNameList) GetVariablePeriodFieldNames() []string {
 	return []string{
 		"NetCashProvidedByUsedInOperatingActivities",
+		"PaymentsToAcquirePropertyPlantAndEquipment",
 	}
 }
 
@@ -107,6 +111,7 @@ func (brtsm *BasicRawToScreenableMapping) GetRawToScreenableMapping(fr *Financia
 	}
 
 	mapping[&fr.OperatingCash] = []string{"NetCashProvidedByUsedInOperatingActivities"}
+	mapping[&fr.CapitalExpenditures] = []string{"PaymentsToAcquirePropertyPlantAndEquipment"}
 
 	return mapping
 }
