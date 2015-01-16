@@ -1,6 +1,6 @@
 package scraper
 
-import(
+import (
 	"testing"
 )
 
@@ -26,10 +26,17 @@ func TestIsXbrlFileMatch(t *testing.T) {
 	}
 
 	for _, badMatch := range badMatches {
-        isMatch := isXbrlFileMatch(badMatch)
-        if isMatch != false {
+		isMatch := isXbrlFileMatch(badMatch)
+		if isMatch != false {
 			t.Fail()
-            t.Log("Should have been a bad match: ", badMatch)
-        }
-    }
+			t.Log("Should have been a bad match: ", badMatch)
+		}
+	}
+}
+
+func TestGetKey(t *testing.T) {
+	key := getKey("10-K/A", 2011, 1)
+	if key != "Y2011Q1FT10-K_A" {
+		t.Fatal("Incorrect key: ", key)
+	}
 }

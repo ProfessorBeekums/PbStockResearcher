@@ -201,7 +201,11 @@ func getBucket(cik string) string {
 }
 
 func getKey(formType string, year, quarter int) string {
-	return "Y" + strconv.Itoa(year) + "Q" + strconv.Itoa(quarter) + "FT" + formType
+	key := "Y" + strconv.Itoa(year) + "Q" + strconv.Itoa(quarter) + "FT" + formType
+
+	key = strings.Replace(key, "/", "_", -1)
+
+	return key
 }
 
 func isXbrlFileMatch(fileName string) bool {
