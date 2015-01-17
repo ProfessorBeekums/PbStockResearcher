@@ -131,6 +131,20 @@ func TestParseInt64Field(t *testing.T) {
 	}
 }
 
+func TestContextParseXmlTagAtTop(t *testing.T) {
+	mockPersister := &MockPersister{}
+	frp := NewFinancialReportParser("../testData/TestContext2.xml",
+		&filings.FinancialReportRaw{CIK: 95304, Year: 2014, Quarter: 2},
+		mockPersister, &filings.BasicRawFieldNameList{})
+	frp.financialReportRaw.RawFields = make(map[string]int64)
+
+	frp.Parse()
+
+	if len(frp.contextMap) == 0 {
+		t.Fatal("Context map was 0 for TestContext2.xml")
+	}
+}
+
 func TestCompleteParseRMCF_2014_2(t *testing.T) {
 	mockPersister := &MockPersister{}
 	frp := NewFinancialReportParser("../testData/rmcf-20140831.xml", &filings.FinancialReportRaw{CIK: 785815, Year: 2014, Quarter: 2},

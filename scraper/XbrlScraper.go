@@ -113,7 +113,11 @@ func (efis *EdgarFullIndexScraper) ParseIndexFile(fileReader io.ReadCloser) {
 				filePath := efis.ts.GetFilePath(bucket, fileKey)
 
 				if filePath == "" {
-					reportFile := &filings.ReportFile{CIK: int64(cikInt), Year: int64(efis.year), Quarter: int64(efis.quarter), Parsed: false}
+					reportFile := &filings.ReportFile{CIK: int64(cikInt),
+						Year:     int64(efis.year),
+						Quarter:  int64(efis.quarter),
+						Parsed:   false,
+						FormType: formType}
 					efis.GetXbrl(filename, bucket, fileKey, reportFile)
 				} else {
 					log.Println("SKIP <", filename, "> because it already exists in: ", filePath)

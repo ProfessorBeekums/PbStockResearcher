@@ -8,6 +8,7 @@ import (
 	"github.com/ProfessorBeekums/PbStockResearcher/filings"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
 	"github.com/ProfessorBeekums/PbStockResearcher/persist"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -133,6 +134,9 @@ func (frp *FinancialReportParser) Parse() {
 		log.Println("Failed to read file")
 	} else {
 		decoder := xml.NewDecoder(fileReader)
+
+		// this is to eat any encoding that was specified... possibly unsafe
+		decoder.CharsetReader = MockCharReader
 
 		// create a map of parent elements which we can match up with functions that do the actual parsing
 		parserMap := createParserMap(decoder)
@@ -435,4 +439,9 @@ func parseContext(frp *FinancialReportParser, listOfElementLists *list.List) {
 
 		frp.contextMap[currentContext] = newContext
 	}
+}
+
+// TODO possibly unsafe... but everything should be parseable still
+func MockCharReader(charset string, input io.Reader) (io.Reader, error) {
+	return input, nil
 }

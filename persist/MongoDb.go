@@ -88,7 +88,7 @@ func (mdrf *MongoDbReportFiles) GetNextUnparsedFiles(numToGet int64) *[]filings.
 	if session != nil {
 		defer session.Close()
 
-		coll.Find(bson.M{"parsed": false}).Limit(int(numToGet)).All(results)
+		coll.Find(bson.M{"parsed": false}).Sort("year", "quarter").Limit(int(numToGet)).All(results)
 	}
 
 	return results
@@ -195,6 +195,11 @@ func (mdfrr *MongoDbFinancialReportsRaw) GetRawReport(cik, year, quarter int64) 
 		defer session.Close()
 
 		coll.Find(bson.M{"cik": cik, "year": year, "quarter": quarter}).One(&rawReport)
+	}
+
+	if rawReport.CIK == 0 || rawReport.Year == 0 || rawReport.Quarter == 0 {
+		// query failed
+		rawReport = nil
 	}
 
 	return rawReport

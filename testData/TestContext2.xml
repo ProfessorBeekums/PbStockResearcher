@@ -1,0 +1,622 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!--XBRL document created with Crossfire XBRL Enabler by Rivet Software version 3.6.4037.19442-->
+<!--Based on XBRL 2.1-->
+<!--Created on: 2/28/2011 12:56:32 PM-->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:dei="http://xbrl.us/dei/2009-01-31" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:sun="http://www.sunocoinc.com/2010-12-31" xmlns:us-gaap="http://xbrl.us/us-gaap/2009-01-31" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <link:schemaRef xlink:type="simple" xlink:href="sun-20101231.xsd" />
+  <!--Context Section-->
+  <context id="Duration_1_1_2009_To_12_31_20099">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:CommonStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2009-01-01</startDate>
+      <endDate>2009-12-31</endDate>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20107">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:RetainedEarningsMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2010-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20106">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:NoncontrollingInterestMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2010-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20105">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:AdditionalPaidInCapitalMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2010-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20104">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:AccumulatedOtherComprehensiveIncomeMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2010-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20097">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:RetainedEarningsMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2009-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20096">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:NoncontrollingInterestMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2009-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20095">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:AdditionalPaidInCapitalMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2009-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20094">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:AccumulatedOtherComprehensiveIncomeMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2009-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20087">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:RetainedEarningsMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2008-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20086">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:NoncontrollingInterestMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2008-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20085">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:AdditionalPaidInCapitalMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2008-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20084">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:AccumulatedOtherComprehensiveIncomeMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2008-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20077">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:RetainedEarningsMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20076">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:NoncontrollingInterestMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20075">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:AdditionalPaidInCapitalMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20074">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:AccumulatedOtherComprehensiveIncomeMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20103">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:TreasuryStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2010-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20102">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:CommonStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2010-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20093">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:TreasuryStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2009-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20092">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:CommonStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2009-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20083">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:TreasuryStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2008-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20082">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:CommonStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2008-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20073">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:TreasuryStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_20072">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:CommonStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="Duration_1_1_2010_To_12_31_201083">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:SegmentReportingInformationBySegmentAxis">sun:BusinessLine4Member</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2010-01-01</startDate>
+      <endDate>2010-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2009_To_12_31_2009433">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:SegmentReportingInformationBySegmentAxis">sun:BusinessLine4Member</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2009-01-01</startDate>
+      <endDate>2009-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2009_To_12_31_2009432">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:SegmentReportingInformationBySegmentAxis">sun:BusinessLine3Member</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2009-01-01</startDate>
+      <endDate>2009-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2008_To_12_31_200810">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:SegmentReportingInformationBySegmentAxis">sun:BusinessLine4Member</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2008-01-01</startDate>
+      <endDate>2008-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2010_To_12_31_201082">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:SegmentReportingInformationBySegmentAxis">sun:BusinessLine1Member</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2010-01-01</startDate>
+      <endDate>2010-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2009_To_12_31_200943">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:SegmentReportingInformationBySegmentAxis">sun:BusniessLine2Member</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2009-01-01</startDate>
+      <endDate>2009-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2009_To_12_31_200942">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:SegmentReportingInformationBySegmentAxis">sun:BusinessLine5Member</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2009-01-01</startDate>
+      <endDate>2009-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2009_To_12_31_20098">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:SegmentReportingInformationBySegmentAxis">sun:BusinessLine1Member</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2009-01-01</startDate>
+      <endDate>2009-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2008_To_12_31_20089">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:SegmentReportingInformationBySegmentAxis">sun:BusinessLine1Member</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2008-01-01</startDate>
+      <endDate>2008-12-31</endDate>
+    </period>
+  </context>
+  <context id="As_Of_12_31_2008">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+    </entity>
+    <period>
+      <instant>2008-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_2007">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="Duration_1_1_2009_To_12_31_20097">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:AdditionalPaidInCapitalMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2009-01-01</startDate>
+      <endDate>2009-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2008_To_12_31_20088">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:AdditionalPaidInCapitalMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2008-01-01</startDate>
+      <endDate>2008-12-31</endDate>
+    </period>
+  </context>
+  <context id="As_Of_12_31_2010">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+    </entity>
+    <period>
+      <instant>2010-12-31</instant>
+    </period>
+  </context>
+  <context id="As_Of_12_31_2009">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+    </entity>
+    <period>
+      <instant>2009-12-31</instant>
+    </period>
+  </context>
+  <context id="Duration_1_1_2009_To_12_31_20096">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:TreasuryStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2009-01-01</startDate>
+      <endDate>2009-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2008_To_12_31_20087">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:TreasuryStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2008-01-01</startDate>
+      <endDate>2008-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2008_To_12_31_20086">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:CommonStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2008-01-01</startDate>
+      <endDate>2008-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2009_To_12_31_20095">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:RetainedEarningsMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2009-01-01</startDate>
+      <endDate>2009-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2009_To_12_31_20094">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:NoncontrollingInterestMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2009-01-01</startDate>
+      <endDate>2009-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2008_To_12_31_20085">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:RetainedEarningsMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2008-01-01</startDate>
+      <endDate>2008-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2008_To_12_31_20084">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:NoncontrollingInterestMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2008-01-01</startDate>
+      <endDate>2008-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2009_To_12_31_20093">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+    </entity>
+    <period>
+      <startDate>2009-01-01</startDate>
+      <endDate>2009-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2008_To_12_31_20083">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+    </entity>
+    <period>
+      <startDate>2008-01-01</startDate>
+      <endDate>2008-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2010_To_12_31_20108">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:TreasuryStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2010-01-01</startDate>
+      <endDate>2010-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2010_To_12_31_20107">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:RetainedEarningsMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2010-01-01</startDate>
+      <endDate>2010-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2010_To_12_31_20106">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:NoncontrollingInterestMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2010-01-01</startDate>
+      <endDate>2010-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2010_To_12_31_20105">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:ComprehensiveIncomeMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2010-01-01</startDate>
+      <endDate>2010-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2010_To_12_31_20104">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:CommonStockMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2010-01-01</startDate>
+      <endDate>2010-12-31</endDate>
+    </period>
+  </context>
+  <context id="Duration_1_1_2010_To_12_31_20103">
+    <entity>
+      <identifier scheme="http://www.sec.gov/CIK">0000095304</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:AdditionalPaidInCapitalMember</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2010-01-01</startDate>
+      <endDate>2010-12-31</endDate>
+    </period>
+  </context>
+</xbrl>
