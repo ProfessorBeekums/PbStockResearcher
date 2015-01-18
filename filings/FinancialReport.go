@@ -82,6 +82,7 @@ type BasicRawFieldNameList struct{}
 func (brfnl *BasicRawFieldNameList) GetInt64RawFieldNames() []string {
 	return []string{
 		"Revenues",
+		"SalesRevenueNet",
 		"CostsAndExpenses",
 		"OperatingExpenses",
 		"NetIncomeLoss",
@@ -105,29 +106,32 @@ func (brfnl *BasicRawFieldNameList) GetVariablePeriodFieldNames() []string {
 }
 
 type RawToScreenableMapping interface {
-	GetRawToScreenableMapping(fr *FinancialReport) map[*int64][]string
+	GetRawToScreenableMapping(fr *FinancialReport) map[*int64][][]string
 }
 
 type BasicRawToScreenableMapping struct{}
 
-func (brtsm *BasicRawToScreenableMapping) GetRawToScreenableMapping(fr *FinancialReport) map[*int64][]string {
-	var mapping map[*int64][]string = make(map[*int64][]string)
+func (brtsm *BasicRawToScreenableMapping) GetRawToScreenableMapping(fr *FinancialReport) map[*int64][][]string {
+	var mapping map[*int64][][]string = make(map[*int64][][]string)
 
-	mapping[&fr.Revenue] = []string{"Revenues"}
-	mapping[&fr.OperatingExpense] = []string{"CostsAndExpenses", "OperatingExpenses"}
-	mapping[&fr.NetIncome] = []string{"NetIncomeLoss"}
+	mapping[&fr.Revenue] = [][]string{{"Revenues"}, {"SalesRevenueNet"}}
+	mapping[&fr.OperatingExpense] =
+		[][]string{{"CostsAndExpenses"},
+			{"OperatingExpenses"},
+			{"CostOfGoodsAndServicesSold"}}
+	mapping[&fr.NetIncome] = [][]string{{"NetIncomeLoss"}}
 
-	mapping[&fr.CurrentAssets] = []string{"AssetsCurrent"}
-	mapping[&fr.TotalAssets] = []string{"Assets"}
-	mapping[&fr.CurrentLiabilities] = []string{"LiabilitiesCurrent"}
-	mapping[&fr.TotalLiabilities] = []string{
+	mapping[&fr.CurrentAssets] = [][]string{{"AssetsCurrent"}}
+	mapping[&fr.TotalAssets] = [][]string{{"Assets"}}
+	mapping[&fr.CurrentLiabilities] = [][]string{{"LiabilitiesCurrent"}}
+	mapping[&fr.TotalLiabilities] = [][]string{{
 		"LiabilitiesCurrent",
 		"DeferredTaxLiabilitiesNoncurrent",
 		"LongTermDebtNoncurrent",
-	}
+	}, {"Liabilities"}}
 
-	mapping[&fr.OperatingCash] = []string{"NetCashProvidedByUsedInOperatingActivities"}
-	mapping[&fr.CapitalExpenditures] = []string{"PaymentsToAcquirePropertyPlantAndEquipment"}
+	mapping[&fr.OperatingCash] = [][]string{{"NetCashProvidedByUsedInOperatingActivities"}}
+	mapping[&fr.CapitalExpenditures] = [][]string{{"PaymentsToAcquirePropertyPlantAndEquipment"}}
 
 	return mapping
 }

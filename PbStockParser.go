@@ -33,42 +33,71 @@ func main() {
 	rawReportPersister :=
 		persist.NewMongoDbFinancialReportsRaw(c.MongoHost, c.MongoDb)
 
-	var batchLimit int64 = 10
+	var batchLimit int64 = 20
 
-	unparsedFiles := reportPersister.GetNextUnparsedFiles(batchLimit)
+	done := false
+	var totalNumValid int64 = 0
+	var totalNumInvalid int64 = 0
 
-	for _, reportFile := range *unparsedFiles {
-		filePath := reportFile.Filepath
-		if !strings.Contains(filePath, "10-Q") &&
-			!strings.Contains(filePath, "10-K") &&
-			!strings.Contains(filePath, "10-K_A") &&
-			!strings.Contains(filePath, "10-Q_A") {
-			log.Println("@@@ skipping: ", filePath)
-			continue
-		}
+	for done == false {
+		unparsedFiles := reportPersister.GetNextUnparsedFiles(batchLimit)
 
-		rawReport := &filings.FinancialReportRaw{CIK: reportFile.CIK, Year: reportFile.Year, Quarter: reportFile.Quarter}
-		// TODO this is not optimal
-		rawReport.RawFields = make(map[string]int64)
-
-		frp := parser.NewFinancialReportParser(reportFile.Filepath,
-			rawReport, rawReportPersister, &filings.BasicRawFieldNameList{})
-
-		frp.Parse()
-
-		fr := frp.GetFinancialReport()
-
-		frValid := fr.IsValid()
-
-		if frValid == nil {
-			log.Println("Parsed report for CIK <", fr.CIK, "> year <", fr.Year, "> quarter <", fr.Quarter, ">")
-		} else {
-			log.Error("Invalid financial report <", fr, "> with error: ", frValid)
-
-			// TODO temporary while I figure out what my parsing code is missing
+		if len(*unparsedFiles) == 0 {
 			break
 		}
-	}
 
+		/**
+		TODO loop through the entire batch and count the number of valid and unvalid entries
+		*/
+
+		var numValid int64 = 0
+		var numInvalid int64 = 0
+		for _, reportFile := range *unparsedFiles {
+			filePath := reportFile.Filepath
+			if !strings.Contains(filePath, "10-Q") &&
+				!strings.Contains(filePath, "10-K") &&
+				!strings.Contains(filePath, "10-K_A") &&
+				!strings.Contains(filePath, "10-Q_A") {
+				reportFile.Parsed = true
+
+				reportPersister.InsertUpdateReportFile(&reportFile)
+				continue
+			}
+
+			rawReport := &filings.FinancialReportRaw{CIK: reportFile.CIK, Year: reportFile.Year, Quarter: reportFile.Quarter}
+			// TODO this is not optimal
+			rawReport.RawFields = make(map[string]int64)
+
+			frp := parser.NewFinancialReportParser(reportFile.Filepath,
+				rawReport, rawReportPersister, &filings.BasicRawFieldNameList{})
+
+			frp.Parse()
+
+			fr := frp.GetFinancialReport()
+
+			frValid := fr.IsValid()
+
+			if frValid == nil {
+				//log.Println("Parsed report for CIK <", fr.CIK, "> year <", fr.Year, "> quarter <", fr.Quarter, ">")
+				numValid++
+			} else {
+				//log.Error("Invalid financial report <", reportFile, "> with error: ", frValid)
+
+				// TODO temporary while I figure out what my parsing code is missing
+				//break
+				numInvalid++
+			}
+
+			reportFile.Parsed = true
+
+			reportPersister.InsertUpdateReportFile(&reportFile)
+		}
+
+		totalNumInvalid += numInvalid
+		totalNumValid += numValid
+
+		log.Println("@@@@ Batch had <", numValid, "> valid and invalid: ", numInvalid)
+		log.Println("@@@@ Total is <", totalNumValid, "> valid and invalid: ", totalNumInvalid)
+	}
 	log.Println("Ending program")
 }

@@ -131,7 +131,40 @@ func TestParseInt64Field(t *testing.T) {
 	}
 }
 
+func TestAlternateTags_Revenue(t *testing.T) {
+	// test that we can handle multiple exclusive tags for the same value
+	mockPersister := &MockPersister{}
+	frp := NewFinancialReportParser("",
+		&filings.FinancialReportRaw{},
+		mockPersister, &filings.BasicRawFieldNameList{})
+
+	rawFields := make(map[string]int64)
+	rawFields["Revenues"] = 12345
+	rawFields["SalesRevenueNet"] = 1234
+
+	frp.financialReportRaw.RawFields = rawFields
+
+	fr := frp.GetFinancialReport()
+
+	if fr.Revenue != 12345 {
+		t.Fatal("Expected Revenues was 12345, got: ", fr.Revenue)
+	}
+
+	rawFields = make(map[string]int64)
+	rawFields["Revenues"] = 12345
+	rawFields["SalesRevenueNet"] = 123456
+
+	frp.financialReportRaw.RawFields = rawFields
+
+	fr = frp.GetFinancialReport()
+
+	if fr.Revenue != 123456 {
+		t.Fatal("Expected Revenues was 123456, got: ", fr.Revenue)
+	}
+}
+
 func TestContextParseXmlTagAtTop(t *testing.T) {
+	// golang by default only decodes utf. test handling ascii
 	mockPersister := &MockPersister{}
 	frp := NewFinancialReportParser("../testData/TestContext2.xml",
 		&filings.FinancialReportRaw{CIK: 95304, Year: 2014, Quarter: 2},

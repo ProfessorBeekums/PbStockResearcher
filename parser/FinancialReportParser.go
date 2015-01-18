@@ -109,16 +109,25 @@ func (frp *FinancialReportParser) GetFinancialReport() *filings.FinancialReport 
 	mappingInterface := &filings.BasicRawToScreenableMapping{}
 	mapping := mappingInterface.GetRawToScreenableMapping(financialReport)
 
-	for screenableField, rawFields := range mapping {
-		var fieldVal int64 = 0
-		for _, rawFieldName := range rawFields {
-			val, exists := frr.RawFields[rawFieldName]
-			if exists {
-				fieldVal += val
+	for screenableField, possibleRawFields := range mapping {
+		var fieldValToUse int64 = 0
+
+		for _, rawFields := range possibleRawFields {
+			var fieldVal int64 = 0
+
+			for _, rawFieldName := range rawFields {
+				val, exists := frr.RawFields[rawFieldName]
+				if exists {
+					fieldVal += val
+				}
+			}
+
+			if fieldVal > fieldValToUse {
+				fieldValToUse = fieldVal
 			}
 		}
 
-		*screenableField = fieldVal
+		*screenableField = fieldValToUse
 	}
 
 	return financialReport
@@ -354,9 +363,9 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 			periodMonths = periodMonths - 3
 
 			if previousFr == nil {
-				log.Error("Could not calculate <", tagName, "> for CIK <", frp.financialReportRaw.CIK,
-					"> and year <", frp.financialReportRaw.Year, "> and quarter <", frp.financialReportRaw.Quarter,
-					"> because no previous report")
+				//log.Error("Could not calculate <", tagName, "> for CIK <", frp.financialReportRaw.CIK,
+				//	"> and year <", frp.financialReportRaw.Year, "> and quarter <", frp.financialReportRaw.Quarter,
+				//	"> because no previous report")
 				break
 			}
 
