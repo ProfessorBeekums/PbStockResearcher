@@ -32,6 +32,7 @@ func main() {
 	reportPersister := persist.NewMongoDbReportFiles(c.MongoHost, c.MongoDb)
 	rawReportPersister :=
 		persist.NewMongoDbFinancialReportsRaw(c.MongoHost, c.MongoDb)
+	fpPersister := persist.NewMongoDbFinancialReports(c.MongoHost, c.MongoDb)
 
 	var batchLimit int64 = 20
 
@@ -79,6 +80,7 @@ func main() {
 
 			if frValid == nil {
 				//log.Println("Parsed report for CIK <", fr.CIK, "> year <", fr.Year, "> quarter <", fr.Quarter, ">")
+				fpPersister.CreateFinancialReport(fr)
 				numValid++
 			} else {
 				//log.Error("Invalid financial report <", reportFile, "> with error: ", frValid)
