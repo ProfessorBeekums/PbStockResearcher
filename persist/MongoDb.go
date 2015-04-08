@@ -1,5 +1,7 @@
 package persist
 
+// DEPRECATED, kept here for posterity
+
 import (
 	"github.com/ProfessorBeekums/PbStockResearcher/filings"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"

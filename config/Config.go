@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	TmpDir, MongoHost, MongoDb string
+	TmpDir, MongoHost, MongoDb, MysqlDb, MysqlUser, MysqlPass string
 }
 
 func NewConfig(filePath string) *Config {

@@ -1,4 +1,8 @@
 Since this is an early stage project, I decided to write a development log instead of a change log. The history of every design and feature decision will be described here.
+2015-04-07:
+I gave MongoDB a real shot. Unfortunately writing complex queries reminds me of coding in LISP, but with curly braces instead. 
+Not to mention that the most widely used go library for it is cumbersome. As much as I wanted to try a new technology, I feel
+like I spent enough time in MongoDB to justify not liking and at this point I want to see more development velocity.
 
 2015-02-16:
 The structure of XBRL filings is definitely more complex than I anticipated. I suspect that there are more variations than I was
