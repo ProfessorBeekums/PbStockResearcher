@@ -28,10 +28,9 @@ func main() {
 
 	ts := tmpStore.NewTempStore(c.TmpDir)
 
-	companyPersister := persist.NewMongoDbCompany(c.MongoHost, c.MongoDb)
-	reportPersister := persist.NewMongoDbReportFiles(c.MongoHost, c.MongoDb)
+	mysql := persist.NewMysqlDb(c.MysqlUser, c.MysqlPass, c.MysqlDb)
 
-	scraper := scraper.NewEdgarFullIndexScraper(year, quarter, ts, companyPersister, reportPersister)
+	scraper := scraper.NewEdgarFullIndexScraper(year, quarter, ts, mysql, mysql)
 
 	scraper.ScrapeEdgarQuarterlyIndex()
 

@@ -69,3 +69,65 @@ func (mysql *MysqlPbStockResearcher) GetCompany(cik int64) *filings.Company {
 
 	return company
 }
+
+func (mysql *MysqlPbStockResearcher) InsertUpdateReportFile(reportFile *filings.ReportFile) {
+
+	if reportFile.ReportFileId == 0 {
+		result, err := mysql.conn.Exec(
+			`INSERT INTO report_file (cik, year, quarter, filepath, form_type) 
+			VALUES (?,?,?,?,?)`,
+			reportFile.CIK,
+			reportFile.Year,
+			reportFile.Quarter,
+			reportFile.Filepath,
+			reportFile.FormType,
+		)
+
+		if err != nil {
+			log.Error("Failed to insert for ", reportFile.GetLogStr(),
+				" because: ", err)
+		} else {
+			lastInsertId, insertErr := result.LastInsertId()
+			if insertErr != nil {
+				log.Error("Failed to get last insert id for ",
+					reportFile.GetLogStr(), " because: ", insertErr)
+			}
+			reportFile.ReportFileId = lastInsertId
+		}
+	} else {
+		result, err := mysql.conn.Exec(
+			`UPDATE report_file SET
+				year=?
+				, quarter=?
+				, filepath=?
+				, form_type=?
+			WHERE report_file_id=?`,
+			reportFile.Year,
+			reportFile.Quarter,
+			reportFile.Filepath,
+			reportFile.FormType,
+			reportFile.ReportFileId,
+		)
+
+		if err != nil {
+			log.Error("Failed to update for ", reportFile.GetLogStr(),
+				" because: ", err)
+		} else {
+			rowsAffected, insertErr := result.RowsAffected()
+			if insertErr != nil {
+				log.Error("Failed to get rows affected for ", reportFile.GetLogStr(),
+					" because: ", insertErr)
+			}
+
+			if rowsAffected < 1 {
+				log.Error("Update successful, but rows affected less than 1 for ",
+					reportFile.GetLogStr())
+			}
+		}
+	}
+
+}
+
+func (mysql *MysqlPbStockResearcher) GetNextUnparsedFiles(numToGet int64) *[]filings.ReportFile {
+	return nil
+}
