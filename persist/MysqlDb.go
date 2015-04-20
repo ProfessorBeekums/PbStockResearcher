@@ -54,17 +54,14 @@ func (mysql *MysqlPbStockResearcher) GetCompany(cik int64) *filings.Company {
 		return company
 	}
 
-	var name string
-
 	// we should only have one row if any
 	row.Next()
-	scanErr := row.Scan(&name)
+	scanErr := row.Scan(&company.Name)
 
 	if scanErr != nil {
 		log.Error("Failed to scan row for cik <", cik, "> due to: ", scanErr)
 	} else {
 		company.CIK = cik
-		company.Name = name
 	}
 
 	return company
@@ -101,11 +98,15 @@ func (mysql *MysqlPbStockResearcher) InsertUpdateReportFile(reportFile *filings.
 				, quarter=?
 				, filepath=?
 				, form_type=?
+				, parsed=?
+				, parse_error=?
 			WHERE report_file_id=?`,
 			reportFile.Year,
 			reportFile.Quarter,
 			reportFile.Filepath,
 			reportFile.FormType,
+			reportFile.Parsed,
+			reportFile.ParseError,
 			reportFile.ReportFileId,
 		)
 
@@ -129,5 +130,35 @@ func (mysql *MysqlPbStockResearcher) InsertUpdateReportFile(reportFile *filings.
 }
 
 func (mysql *MysqlPbStockResearcher) GetNextUnparsedFiles(numToGet int64) *[]filings.ReportFile {
-	return nil
+	rows, err := mysql.conn.Query(`
+		SELECT report_file_id as reportFileId
+		, cik
+		, year
+		, quarter
+		, filepath
+		, form_type
+		FROM report_file
+		WHERE parsed = 0 and parse_error=0 
+		LIMIT ?`, numToGet)
+
+	reportFiles := make([]filings.ReportFile, numToGet)
+
+	if err != nil {
+		log.Error("Couldn't retrieve unparsed report files")
+		return &reportFiles
+	}
+
+	lastIndex := 0
+
+	for rows.Next() {
+		newReportFile := filings.ReportFile{}
+
+		rows.Scan(&newReportFile.ReportFileId, &newReportFile.CIK, &newReportFile.Year,
+		&newReportFile.Quarter, &newReportFile.Filepath, &newReportFile.FormType)
+
+		reportFiles[lastIndex] = newReportFile
+		lastIndex++
+	}
+
+	return &reportFiles
 }
