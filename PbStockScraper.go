@@ -30,9 +30,9 @@ func main() {
 
 	mysql := persist.NewMysqlDb(c.MysqlUser, c.MysqlPass, c.MysqlDb)
 
-	scraper := scraper.NewEdgarFullIndexScraper(year, quarter, ts, mysql, mysql)
+	pbScraper := scraper.NewEdgarFullIndexScraper(year, quarter, ts, mysql, mysql)
 
-	scraper.ScrapeEdgarQuarterlyIndex()
+	pbScraper.ScrapeEdgarQuarterlyIndex()
 
 	log.Println("Ending program")
 }
