@@ -1,14 +1,25 @@
 package filings
 
-import "errors"
+import (
+	"errors"
+	"strconv"
+)
 
 // TODO this will need a walk script that'll go through raw reports and parse these.
 // there should be an option to only create new and to override all
 type FinancialReport struct {
+	FinancialReportId, ReportFileId                                  int64
 	CIK, Year, Quarter                                               int64
 	Revenue, OperatingExpense, NetIncome                             int64
 	CurrentAssets, TotalAssets, CurrentLiabilities, TotalLiabilities int64
 	OperatingCash, CapitalExpenditures                               int64
+}
+
+func (fr *FinancialReport) GetLogStr() string {
+	return "financial report cik <" + strconv.FormatInt(fr.CIK, 10) +
+			"> with year <" + strconv.FormatInt(fr.Year, 10) +
+			"> and quarter <" + strconv.FormatInt(fr.Quarter, 10) +
+			"> and report file id: " + strconv.FormatInt(fr.ReportFileId,10)
 }
 
 func (fr *FinancialReport) IsValid() error {
