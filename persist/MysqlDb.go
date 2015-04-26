@@ -146,7 +146,7 @@ func (mysql *MysqlPbStockResearcher) GetNextUnparsedFiles(numToGet int64) *[]fil
 
 	if err != nil {
 		log.Error("Couldn't retrieve unparsed report files")
-		return &reportFiles
+		return &[]filings.ReportFile{}
 	}
 
 	lastIndex := 0
@@ -159,6 +159,14 @@ func (mysql *MysqlPbStockResearcher) GetNextUnparsedFiles(numToGet int64) *[]fil
 
 		reportFiles[lastIndex] = newReportFile
 		lastIndex++
+	}
+
+	if int64(lastIndex) < (numToGet - 1) {
+		// TODO yuch. Maybe slices aren't the way to go
+		if lastIndex < 0 {
+			lastIndex++
+		}
+		reportFiles = reportFiles[0:lastIndex]
 	}
 
 	return &reportFiles

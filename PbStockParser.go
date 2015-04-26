@@ -49,6 +49,9 @@ func main() {
 		var numValid int64 = 0
 		var numInvalid int64 = 0
 		for _, reportFile := range *unparsedFiles {
+			if reportFile.CIK == 0 {
+				return;
+			}
 			filePath := reportFile.Filepath
 			if !strings.Contains(filePath, "10-Q") &&
 				!strings.Contains(filePath, "10-K") &&
@@ -79,6 +82,7 @@ func main() {
 				numValid++
 			} else {
 				//log.Error("Invalid financial report <", reportFile, "> with error: ", frValid)
+				reportFile.ParseError = true
 
 				// TODO temporary while I figure out what my parsing code is missing
 				//break
