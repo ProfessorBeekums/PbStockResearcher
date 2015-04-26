@@ -28,12 +28,7 @@ func main() {
 
 	tmpStore.NewTempStore(c.TmpDir)
 
-	//companyPersister := persist.NewMongoDbCompany(c.MongoHost, c.MongoDb)
-	reportPersister := persist.NewMongoDbReportFiles(c.MongoHost, c.MongoDb)
-	rawReportPersister :=
-		persist.NewMongoDbFinancialReportsRaw(c.MongoHost, c.MongoDb)
-	fpPersister := persist.NewMongoDbFinancialReports(c.MongoHost, c.MongoDb)
-
+	mysqlPersister := persist.NewMysqlDb(c.MysqlUser, c.MysqlPass, c.MysqlDb)
 	var batchLimit int64 = 20
 
 	done := false
@@ -41,7 +36,7 @@ func main() {
 	var totalNumInvalid int64 = 0
 
 	for done == false {
-		unparsedFiles := reportPersister.GetNextUnparsedFiles(batchLimit)
+		unparsedFiles := mysqlPersister.GetNextUnparsedFiles(batchLimit)
 
 		if len(*unparsedFiles) == 0 {
 			break
@@ -61,7 +56,7 @@ func main() {
 				!strings.Contains(filePath, "10-Q_A") {
 				reportFile.Parsed = true
 
-				reportPersister.InsertUpdateReportFile(&reportFile)
+				mysqlPersister.InsertUpdateReportFile(&reportFile)
 				continue
 			}
 
@@ -70,7 +65,7 @@ func main() {
 			rawReport.RawFields = make(map[string]int64)
 
 			frp := parser.NewFinancialReportParser(reportFile.Filepath,
-				rawReport, rawReportPersister, &filings.BasicRawFieldNameList{})
+				rawReport, mysqlPersister, &filings.BasicRawFieldNameList{})
 
 			frp.Parse()
 
@@ -80,7 +75,7 @@ func main() {
 
 			if frValid == nil {
 				//log.Println("Parsed report for CIK <", fr.CIK, "> year <", fr.Year, "> quarter <", fr.Quarter, ">")
-				fpPersister.CreateFinancialReport(fr)
+				mysqlPersister.InsertUpdateFinancialReport(fr)
 				numValid++
 			} else {
 				//log.Error("Invalid financial report <", reportFile, "> with error: ", frValid)
@@ -92,7 +87,7 @@ func main() {
 
 			reportFile.Parsed = true
 
-			reportPersister.InsertUpdateReportFile(&reportFile)
+			mysqlPersister.InsertUpdateReportFile(&reportFile)
 		}
 
 		totalNumInvalid += numInvalid

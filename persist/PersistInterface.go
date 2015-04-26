@@ -5,9 +5,9 @@ import (
 )
 
 type PersistFinancialReports interface {
-	CreateFinancialReport(fr *filings.FinancialReport)
-	UpdateFinancialReport(fr *filings.FinancialReport)
-	GetFinancialReport(cik, year, quarter int64) *filings.FinancialReport
+	InsertUpdateFinancialReport(fr *filings.FinancialReport)
+	// TODO unused for now
+//	GetFinancialReport(cik, year, quarter int64) *filings.FinancialReport
 }
 
 type PersistFinancialReportsRaw interface {

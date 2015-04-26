@@ -142,7 +142,7 @@ func (mdfr *MongoDbFinancialReports) CreateFinancialReport(fr *filings.Financial
 	}
 }
 
-func (mdfr *MongoDbFinancialReports) UpdateFinancialReport(fr *filings.FinancialReport) {
+func (mdfr *MongoDbFinancialReports) InsertUpdateFinancialReport(fr *filings.FinancialReport) {
 	session, coll :=
 		getSessionAndCollection(mdfr.host, mdfr.database, financialReportsCollection)
 

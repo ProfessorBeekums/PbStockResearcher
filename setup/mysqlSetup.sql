@@ -24,7 +24,7 @@ create table financial_report (
 , operating_cash bigint not null default 0
 , capital_expenditures bigint not null default 0
 , PRIMARY KEY(financial_report_id)
-, KEY (cik)
+, UNIQUE KEY (cik, year, quarter)
 , KEY (year, quarter)
 , KEY (report_file_id)
 ) ENGINE=INNODB;
@@ -35,7 +35,7 @@ create table financial_report_raw_fields (
 , field_name varchar(255) not null
 , field_value bigint not null default 0
 , PRIMARY KEY(financial_report_raw_field_id)
-, KEY(financial_report_id)
+, UNIQUE KEY(financial_report_id, field_name)
 ) ENGINE=INNODB;
 
 create table report_file(

@@ -5,6 +5,7 @@ import (
 	"github.com/ProfessorBeekums/PbStockResearcher/filings"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
 	_ "github.com/go-sql-driver/mysql"
+	"strings"
 )
 
 var driver = "mysql"
@@ -161,4 +162,137 @@ func (mysql *MysqlPbStockResearcher) GetNextUnparsedFiles(numToGet int64) *[]fil
 	}
 
 	return &reportFiles
+}
+
+
+func (mysql *MysqlPbStockResearcher) InsertUpdateFinancialReport(fr *filings.FinancialReport) {
+	result, err := mysql.conn.Exec(
+		`INSERT INTO financial_report (cik, year, quarter, report_file_id
+			, revenue
+			, operating_expense
+			, net_income
+			, current_assets
+			, total_assets
+			, current_liabilities
+			, total_liabilities
+			, operating_cash
+			, capital_expenditures
+		) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+		ON DUPLICATE KEY UPDATE report_file_id=VALUES(report_file_id)
+			, revenue=VALUES(revenue)
+			, operating_expense=VALUES(operating_expense)
+			, net_income=VALUES(net_income)
+			, current_assets=VALUES(current_assets)
+			, total_assets=VALUES(total_assets)
+			, current_liabilities=VALUES(current_liabilities)
+			, total_liabilities=VALUES(total_liabilities)
+			, operating_cash=VALUES(operating_cash)
+			, capital_expenditures=VALUES(capital_expenditures)
+		`,
+		fr.CIK,
+		fr.Year,
+		fr.Quarter,
+		fr.ReportFileId,
+		fr.Revenue,
+		fr.OperatingExpense,
+		fr.NetIncome,
+		fr.CurrentAssets,
+		fr.TotalAssets,
+		fr.CurrentLiabilities,
+		fr.TotalLiabilities,
+		fr.OperatingCash,
+		fr.CapitalExpenditures,
+	)
+
+	if err != nil {
+		log.Error("Failed to insert/update for ", fr.GetLogStr(),
+			" because: ", err)
+	} else {
+		lastInsertId, insertErr := result.LastInsertId()
+		if insertErr != nil {
+			log.Error("Failed to get last insert id for ",
+				fr.GetLogStr(), " because: ", insertErr)
+		}
+		fr.FinancialReportId= lastInsertId
+	}
+}
+//func (mysql *MysqlPbStockResearcher) GetFinancialReport(cik, year, quarter int64) *filings.FinancialReport {
+//	// TODO unused for now
+//	return nil
+//}
+
+func (mysql *MysqlPbStockResearcher) InsertUpdateRawReport(rawReport *filings.FinancialReportRaw) {
+	numFields := len(rawReport.RawFields)
+
+	if numFields < 1 {
+		return;
+	}
+
+	// create a new financial report to grab the primary key
+	fr := &filings.FinancialReport{CIK: rawReport.CIK, Year: rawReport.Year, Quarter: rawReport.Quarter}
+	mysql.InsertUpdateFinancialReport(fr)
+
+	args := make([]interface {}, numFields * 3)
+	query :=
+	`INSERT INTO financial_report_raw_fields (financial_report_id, field_name, field_value) VALUES `
+
+	dbArgs := make([]string, numFields)
+
+	for i := 0; i < numFields; i++ {
+		dbArgs[i] = "(?,?,?)"
+	}
+
+	var argIndex int = 0
+	for fieldName, fieldValue := range rawReport.RawFields {
+		args[argIndex] = fr.FinancialReportId
+		argIndex++
+		args[argIndex] = fieldName
+		argIndex++
+		args[argIndex] = fieldValue
+		argIndex++
+	}
+
+	query += strings.Join(dbArgs, ",")
+
+	query += " ON DUPLICATE KEY UPDATE field_value=VALUES(field_value)"
+
+	_, err := mysql.conn.Exec(query, args...)
+
+	if err != nil {
+		log.Error("Failed to insert/update raw fields for ", fr.GetLogStr(),
+			" because: ", err)
+	}
+}
+func (mysql *MysqlPbStockResearcher) GetRawReport(cik, year, quarter int64) *filings.FinancialReportRaw {
+	rawReport := new(filings.FinancialReportRaw)
+	rawReport.CIK = cik
+	rawReport.Year = year
+	rawReport.Quarter = quarter
+
+	rows, err := mysql.conn.Query(`
+		SELECT financial_report_id
+		, field_name
+		, field_value
+		FROM financial_report_raw_fields raw
+		JOIN financial_report fr ON fr.financial_report_id = raw.financial_report_id
+		WHERE fr.cik=? AND fr.year=? AND fr.quarter=?`,
+		cik, year, quarter,
+	)
+
+	rawReport.RawFields = make(map[string]int64)
+
+	if err != nil {
+		log.Error("Couldn't retrieve unparsed report files")
+		return rawReport
+	}
+
+	for rows.Next() {
+		var fieldName string
+		var fieldValue int64
+		rows.Scan(&fieldName, &fieldValue)
+
+		rawReport.RawFields[fieldName] = fieldValue
+	}
+
+	return rawReport
 }
