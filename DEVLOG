@@ -1,4 +1,14 @@
 Since this is an early stage project, I decided to write a development log instead of a change log. The history of every design and feature decision will be described here.
+2015-04-26
+I can think of two ways to develop the screener. One is the just have a function for each criteria and then having the
+caller manage narrowing data with multiple criteria. The other is to use criteria objects and have the caller pass those
+into the screener. The advantage of the latter is that it makes the data layer a little more abstract. With mysql, I can
+optimize a little by having a union query on several of those screeners where with the first solution, it is guaranteed
+to be one query per criteria which will return more rows that the application code will have to parse.
+I'm actually going to go with the first one though because it is much simpler. I may not need the complexity of criteria
+objects since my data set isn't going to be THAT large and I don't need fast response times either. Also, the simpler
+solution can be refactored pretty easily into the complex one if it turns out that I do need it
+
 2015-04-07:
 I gave MongoDB a real shot. Unfortunately writing complex queries reminds me of coding in LISP, but with curly braces instead. 
 Not to mention that the most widely used go library for it is cumbersome. As much as I wanted to try a new technology, I feel

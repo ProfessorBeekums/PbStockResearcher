@@ -30,6 +30,7 @@ func NewMysqlDb(user, pass, table string) *MysqlPbStockResearcher {
 	return mysqlDb
 }
 
+////////////////////////////////BEGIN Persistence Functions////////////////////////////////////////////
 func (mysql *MysqlPbStockResearcher) InsertUpdateCompany(company *filings.Company) {
 	_, err := mysql.conn.Exec(
 		`INSERT INTO company (cik, name) VALUES (?,?)
@@ -304,3 +305,50 @@ func (mysql *MysqlPbStockResearcher) GetRawReport(cik, year, quarter int64) *fil
 
 	return rawReport
 }
+
+////////////////////////////////END Persistence Functions////////////////////////////////////////////
+
+////////////////////////////////BEGIN Screener Functions////////////////////////////////////////////
+// Using an implicit limit of 5000 in each query because if it's more than 5000, it's not a very good screen.
+// Also... I don't want to deal with the performance of it being higher
+const MAX_SCREEN_RESULTS = 5000
+func (mysql *MysqlPbStockResearcher) GetRatio(ratioQuery string, year, quarter int, min, max float64) map[*filings.Company]float64 {
+	query := "SELECT c.cik, c.name, " + ratioQuery + ` as ratio
+				FROM financial_report fr
+				JOIN company c on c.cik = fr.cik
+				WHERE year = ? AND quarter = ? AND ` +
+					ratioQuery + " > ? AND " +
+					ratioQuery + ` < ?
+				ORDER BY ratio DESC
+				LIMIT ?`
+
+	screenResults := make(map[*filings.Company]float64)
+	rows, err := mysql.conn.Query(query, year, quarter, min, max, MAX_SCREEN_RESULTS)
+
+	if err != nil {
+		log.Error("Bad screen query for ScreenNetMargin: ", err)
+	} else {
+		for rows.Next() {
+			company := &filings.Company{}
+			var ratio float64
+			rows.Scan(&company.CIK, &company.Name, &ratio)
+
+			screenResults[company] = ratio
+		}
+	}
+
+	return screenResults
+}
+
+func (mysql *MysqlPbStockResearcher) ScreenNetMargin(year, quarter int, min, max float64) map[*filings.Company]float64 {
+	return mysql.GetRatio("net_income / revenue", year, quarter, min, max)
+}
+
+func (mysql *MysqlPbStockResearcher) ScreenAssetRatio(year, quarter int, min, max float64) map[*filings.Company]float64 {
+	return mysql.GetRatio("total_assets / (total_liabilities + total_assets)", year, quarter, min, max)
+}
+
+func (mysql *MysqlPbStockResearcher) ScreenCurrentRatio(year, quarter int, min, max float64) map[*filings.Company]float64 {
+	return mysql.GetRatio("current_assets / (total_liabilities + current_assets)", year, quarter, min, max)
+}
+////////////////////////////////END Screener Functions////////////////////////////////////////////
