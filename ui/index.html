@@ -1,0 +1,68 @@
+<html>
+  <head>
+    <title>PbStockResearcher</title>
+    <script src="https://fb.me/react-0.13.2.js"></script>
+    <script src="https://fb.me/JSXTransformer-0.13.2.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+  </head>
+  <body>
+    <div id="content"></div>
+    <script type="text/jsx">
+      var testData = [
+        {company: "Rocky Mountain", note:"awesome cpmpany", timestamp:12345},
+        {company: "dreamworks", note:" another awesome cpmpany", timestamp:123495}
+      ];
+
+      var NoteList = React.createClass({
+        getInitialState: function() {
+          return {data: []};
+        },
+        render: function() {
+          var noteList = this.props.data.map(function(note) {
+            return (
+              <div className="note">
+                <div className="note-company">
+                  {note.company}
+                </div>
+                <div className="note-text">
+                  {note.note}
+                </div>
+                <div className="note-time">
+                  {note.timestamp}
+                </div>
+              </div>
+            );
+          });
+          return (
+            <div className="noteList">
+              {noteList}
+            </div>
+          );
+        }
+      });
+      var NoteForm = React.createClass({
+        render: function() {
+          return (
+            <div className="noteForm">
+              Hello, world! I am a NoteForm.
+            </div>
+          );
+        }
+      });
+      var NoteBox = React.createClass({
+        render: function() {
+          return (
+            <div className="noteBox">
+              <NoteForm />
+              <NoteList data={testData}/>
+            </div>
+          );
+        }
+      });
+      React.render(
+        <NoteBox />,
+        document.getElementById('content')
+      );
+    </script>
+  </body>
+</html>
