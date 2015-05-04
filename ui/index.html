@@ -8,29 +8,22 @@
   <body>
     <div id="content"></div>
     <script type="text/jsx">
-      var testData = [
-        {company: "Rocky Mountain", note:"awesome cpmpany", timestamp:12345},
-        {company: "dreamworks", note:" another awesome cpmpany", timestamp:123495}
-      ];
-
+      var NoteElement = React.createClass({
+        render: function() {
+          return (
+            <div className="note">
+              {this.props.company}
+              {this.props.note}
+              {this.props.timestamp}
+            </div>
+          );
+        }
+      });
       var NoteList = React.createClass({
-        getInitialState: function() {
-          return {data: []};
-        },
         render: function() {
           var noteList = this.props.data.map(function(note) {
             return (
-              <div className="note">
-                <div className="note-company">
-                  {note.company}
-                </div>
-                <div className="note-text">
-                  {note.note}
-                </div>
-                <div className="note-time">
-                  {note.timestamp}
-                </div>
-              </div>
+              <NoteElement key={note.Company} company={note.Company} note={note.Note} timestamp={note.Timestamp}/>
             );
           });
           return (
@@ -50,11 +43,33 @@
         }
       });
       var NoteBox = React.createClass({
+        loadNotesFromServer: function() {
+          $.ajax({
+            url: 'note',
+            dataType: 'json',
+            cache: false,
+            success: function(data) {
+              this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+              console.error(this.props.url, status, err.toString());
+            }.bind(this)
+          });
+        },
+        getInitialState: function() {
+          return {data: []};
+        },
+        componentDidMount: function() {
+          this.loadNotesFromServer();
+
+          // TODO configurable
+          setInterval(this.loadCommentsFromServer, 2000);
+        },
         render: function() {
           return (
             <div className="noteBox">
               <NoteForm />
-              <NoteList data={testData}/>
+              <NoteList data={this.state.data}/>
             </div>
           );
         }
