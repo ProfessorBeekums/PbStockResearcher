@@ -18,8 +18,10 @@ func (nm *NoteManager) GetNotes() map[string]*Note {
 	return nm.Notes
 }
 
-func (nm *NoteManager) AddNote(company, note string) {
+func (nm *NoteManager) AddNote(company, note string) *Note {
 	size := strconv.Itoa(len(nm.Notes))
 	currentTime := time.Now().Unix()
-	nm.Notes[size] = &Note{Company: company, Note: note, Timestamp: currentTime}
+	noteObj := &Note{Company: company, Note: note, Timestamp: currentTime}
+	nm.Notes[size] = noteObj
+	return noteObj
 }

@@ -34,11 +34,25 @@
         }
       });
       var NoteForm = React.createClass({
+        handleSubmit: function(e) {
+          e.preventDefault();
+          var company = React.findDOMNode(this.refs.company).value.trim();
+          var note = React.findDOMNode(this.refs.note).value.trim();
+          if (!note || !company) {
+            return;
+          }
+          this.props.onNoteSubmit({company:company, note:note});
+          React.findDOMNode(this.refs.company).value = '';
+          React.findDOMNode(this.refs.note).value = '';
+          return;
+        },
         render: function() {
           return (
-            <div className="noteForm">
-              Hello, world! I am a NoteForm.
-            </div>
+            <form className="noteForm" onSubmit={this.handleSubmit}>
+              <input type="text" placeholder="Enter company name" ref="company" />
+              <input type="text" placeholder="Enter note text" ref="note" />
+              <input type="submit" value="Post" />
+            </form>
           );
         }
       });
@@ -56,6 +70,20 @@
             }.bind(this)
           });
         },
+        handleNoteSubmit: function(noteData) {
+        $.ajax({
+          url: 'note',
+          dataType: 'json',
+          type: 'POST',
+          data: noteData,
+          success: function(data) {
+            this.loadNotesFromServer()
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+        },
         getInitialState: function() {
           return {data: []};
         },
@@ -68,7 +96,7 @@
         render: function() {
           return (
             <div className="noteBox">
-              <NoteForm />
+              <NoteForm onNoteSubmit={this.handleNoteSubmit}/>
               <NoteList data={this.state.data}/>
             </div>
           );

@@ -66,6 +66,21 @@ func getNotes(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func postNotes(w http.ResponseWriter, r *http.Request) {
+	company := r.FormValue("company")
+	note := r.FormValue("note")
+
+	noteObj := noteManager.AddNote(company, note)
+
+	jsonData, err := json.Marshal(noteObj)
+
+	if err != nil {
+		fmt.Fprintln(w, "ERROR encoding json data: ", err)
+	} else {
+		fmt.Fprintln(w, string(jsonData))
+	}
+}
+
 func main() {
 	log.Println("Starting web server...")
 
@@ -84,6 +99,7 @@ func main() {
 	http.HandleFunc("/", handleMainPage)
 
 	registerHttpHandler("note", HttpMethodGet, getNotes)
+	registerHttpHandler("note", HttpMethodPost, postNotes)
 
 	noteManager = &notes.NoteManager{}
 	// TODO test
