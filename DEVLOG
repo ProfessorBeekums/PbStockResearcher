@@ -1,4 +1,13 @@
 Since this is an early stage project, I decided to write a development log instead of a change log. The history of every design and feature decision will be described here.
+2015-05-09
+I may need to reconsider how the persisters are done. At first I designed it that way to make it easier to switch data
+stores. I don't think I need to be able to do that anymore. Creating notes uses a newer pattern that I think I'd prefer.
+On another note, I decided to quickly add a new feature that I need almost a little more than a screener: a place for
+notes on companies I'm already invested in or am investigating. I once tried this a while ago with something really
+ambitious. For now though, a basic text blob store will suffice. I'll add onto it as I need to.
+Plus, this is the perfect opportunity to start playing around with ReactJS. I'm going to want a web UI anyway to manage
+the scraper and parsing.
+
 2015-04-26
 I can think of two ways to develop the screener. One is the just have a function for each criteria and then having the
 caller manage narrowing data with multiple criteria. The other is to use criteria objects and have the caller pass those

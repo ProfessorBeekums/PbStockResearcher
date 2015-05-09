@@ -30,6 +30,10 @@ func NewMysqlDb(user, pass, table string) *MysqlPbStockResearcher {
 	return mysqlDb
 }
 
+func (mysql *MysqlPbStockResearcher) GetConnection() *sql.DB {
+	return mysql.conn
+}
+
 ////////////////////////////////BEGIN Persistence Functions////////////////////////////////////////////
 func (mysql *MysqlPbStockResearcher) InsertUpdateCompany(company *filings.Company) {
 	_, err := mysql.conn.Exec(

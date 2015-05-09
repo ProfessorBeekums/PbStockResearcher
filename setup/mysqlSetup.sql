@@ -51,3 +51,12 @@ create table report_file(
 , KEY(cik)
 , KEY(year, quarter)
 ) ENGINE=INNODB;
+
+create table notes(
+  note_id int unsigned auto_increment
+, cik bigint unsigned not null
+, note_text TEXT not null
+, timestamp int unsigned not null
+, PRIMARY KEY (note_id)
+, KEY(cik)
+) ENGINE=INNODB;

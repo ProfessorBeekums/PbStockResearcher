@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
+	"github.com/ProfessorBeekums/PbStockResearcher/config"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
 	"github.com/ProfessorBeekums/PbStockResearcher/notes"
+	"github.com/ProfessorBeekums/PbStockResearcher/persist"
 )
 
 const HttpMethodGet = "GET"
@@ -67,10 +70,17 @@ func getNotes(w http.ResponseWriter, r *http.Request) {
 }
 
 func postNotes(w http.ResponseWriter, r *http.Request) {
-	company := r.FormValue("company")
+	cikVal := r.FormValue("cik")
 	note := r.FormValue("note")
 
-	noteObj := noteManager.AddNote(company, note)
+	cik, parseErr := strconv.Atoi(cikVal)
+
+	if parseErr != nil {
+		fmt.Fprintln(w, "ERROR parsing cik: ", parseErr)
+		return
+	}
+
+	noteObj := noteManager.AddNote(int64(cik), note)
 
 	jsonData, err := json.Marshal(noteObj)
 
@@ -83,6 +93,12 @@ func postNotes(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	log.Println("Starting web server...")
+
+	c := config.NewConfig("/home/beekums/Projects/stockResearch/config")
+
+	log.Println("Loaded config: ", c)
+
+	mysql := persist.NewMysqlDb(c.MysqlUser, c.MysqlPass, c.MysqlDb)
 
 	loadTemplates()
 
@@ -101,12 +117,7 @@ func main() {
 	registerHttpHandler("note", HttpMethodGet, getNotes)
 	registerHttpHandler("note", HttpMethodPost, postNotes)
 
-	noteManager = &notes.NoteManager{}
-	// TODO test
-	noteManager.Notes = make(map[string]*notes.Note)
-	noteManager.AddNote("rockymountain", "some awesomeness")
-	noteManager.AddNote("dreamworks", "more awesomeness")
-	noteManager.AddNote("disney", "micky mouse")
+	noteManager = notes.GetNewNoteManager(mysql)
 
 	http.ListenAndServe(":4000", nil)
 }

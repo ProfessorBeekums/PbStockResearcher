@@ -10,11 +10,22 @@
     <script type="text/jsx">
       var NoteElement = React.createClass({
         render: function() {
+        // TODO convert timestamp to date and sort
           return (
             <div className="note">
-              {this.props.company}
-              {this.props.note}
-              {this.props.timestamp}
+              <div className="cik">
+                CIK: {this.props.cik}
+              </div>
+              <div className="company-name">
+                Company Name: {this.props.company}
+              </div>
+              <div className="note-text">
+                Note: {this.props.note}
+              </div>
+              <div className="timestamp">
+                Timestamp: {this.props.timestamp}
+              </div>
+                <br/>
             </div>
           );
         }
@@ -23,7 +34,7 @@
         render: function() {
           var noteList = this.props.data.map(function(note) {
             return (
-              <NoteElement key={note.Company} company={note.Company} note={note.Note} timestamp={note.Timestamp}/>
+              <NoteElement key={note.CIK} cik={note.CIK} company={note.CompanyName} note={note.Note} timestamp={note.Timestamp}/>
             );
           });
           return (
@@ -36,20 +47,20 @@
       var NoteForm = React.createClass({
         handleSubmit: function(e) {
           e.preventDefault();
-          var company = React.findDOMNode(this.refs.company).value.trim();
+          var cik = React.findDOMNode(this.refs.cik).value.trim();
           var note = React.findDOMNode(this.refs.note).value.trim();
-          if (!note || !company) {
+          if (!note || !cik) {
             return;
           }
-          this.props.onNoteSubmit({company:company, note:note});
-          React.findDOMNode(this.refs.company).value = '';
+          this.props.onNoteSubmit({cik:cik, note:note});
+          React.findDOMNode(this.refs.cik).value = '';
           React.findDOMNode(this.refs.note).value = '';
           return;
         },
         render: function() {
           return (
             <form className="noteForm" onSubmit={this.handleSubmit}>
-              <input type="text" placeholder="Enter company name" ref="company" />
+              <input type="text" placeholder="Enter cik" ref="cik" />
               <input type="text" placeholder="Enter note text" ref="note" />
               <input type="submit" value="Post" />
             </form>
@@ -58,6 +69,8 @@
       });
       var NoteBox = React.createClass({
         loadNotesFromServer: function() {
+        // TODO add ability to filter by company and date
+        // TODO will need to page this eventually
           $.ajax({
             url: 'note',
             dataType: 'json',
