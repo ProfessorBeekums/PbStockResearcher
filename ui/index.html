@@ -34,7 +34,7 @@
         render: function() {
           var noteList = this.props.data.map(function(note) {
             return (
-              <NoteElement key={note.CIK} cik={note.CIK} company={note.CompanyName} note={note.Note} timestamp={note.Timestamp}/>
+              <NoteElement key={note.NoteId} cik={note.CIK} company={note.CompanyName} note={note.Note} timestamp={note.Timestamp}/>
             );
           });
           return (

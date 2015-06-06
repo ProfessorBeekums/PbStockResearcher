@@ -9,25 +9,25 @@ import (
 
 type Note struct {
 	CompanyName, Note string
-	CIK, Timestamp int64
+	NoteId, CIK, Timestamp int64
 }
 
 type NoteManager struct {
-	notes map[string]*Note
+	notes map[int64]*Note
 	persister *persist.MysqlPbStockResearcher
 }
 
 func GetNewNoteManager(persister *persist.MysqlPbStockResearcher) *NoteManager {
 	noteManager := &NoteManager{}
-	noteManager.notes = make(map[string]*Note)
+	noteManager.notes = make(map[int64]*Note)
 	noteManager.persister = persister
 
 	return noteManager
 }
 
-func (nm *NoteManager) GetNotes() map[string]*Note {
+func (nm *NoteManager) GetNotes() map[int64]*Note {
 	rows, err := nm.persister.GetConnection().Query(`
-		SELECT c.name, n.cik, n.note_text, n.timestamp
+		SELECT n.note_id, c.name, n.cik, n.note_text, n.timestamp
 		FROM notes n
 		JOIN company c on c.cik = n.cik`)
 
@@ -39,9 +39,9 @@ func (nm *NoteManager) GetNotes() map[string]*Note {
 	for rows.Next() {
 		loadedNote := Note{}
 
-		rows.Scan(&loadedNote.CompanyName, &loadedNote.CIK, &loadedNote.Note, &loadedNote.Timestamp)
+		rows.Scan(&loadedNote.NoteId, &loadedNote.CompanyName, &loadedNote.CIK, &loadedNote.Note, &loadedNote.Timestamp)
 
-		nm.notes[loadedNote.CompanyName] = &loadedNote
+		nm.notes[loadedNote.NoteId] = &loadedNote
 	}
 
 	return nm.notes
@@ -70,7 +70,7 @@ func (nm *NoteManager) AddNote(cik int64, note string) *Note {
 			" because: ", err)
 		noteObj = nil
 	} else {
-		nm.notes[noteObj.CompanyName] = noteObj
+//		nm.notes[noteObj.NoteId] = noteObj
 	}
 
 	return noteObj
