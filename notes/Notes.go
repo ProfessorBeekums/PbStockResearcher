@@ -29,7 +29,9 @@ func (nm *NoteManager) GetNotes() map[int64]*Note {
 	rows, err := nm.persister.GetConnection().Query(`
 		SELECT n.note_id, c.name, n.cik, n.note_text, n.timestamp
 		FROM notes n
-		JOIN company c on c.cik = n.cik`)
+		JOIN company c on c.cik = n.cik
+		ORDER BY n.timestamp desc
+		LIMIT 100`) // TODO make limit configurable
 
 	if err != nil {
 		log.Error("Failed to load notes due to: ", err)

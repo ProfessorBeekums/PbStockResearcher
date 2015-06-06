@@ -32,10 +32,13 @@
       });
       var NoteList = React.createClass({
         render: function() {
+          var cikFilter = this.props.cikFilter;
           var noteList = this.props.data.map(function(note) {
-            return (
-              <NoteElement key={note.NoteId} cik={note.CIK} company={note.CompanyName} note={note.Note} timestamp={note.Timestamp}/>
-            );
+            if(cikFilter == '' || note.CIK == cikFilter) {
+              return (
+                <NoteElement key={note.NoteId} cik={note.CIK} company={note.CompanyName} note={note.Note} timestamp={note.Timestamp}/>
+              );
+            }
           });
           return (
             <div className="noteList">
@@ -67,10 +70,28 @@
           );
         }
       });
+      var NoteFilter = React.createClass({
+        handleSubmit: function(e) {
+          e.preventDefault();
+          var cik = React.findDOMNode(this.refs.cik).value.trim();
+
+          this.props.onNoteFilterSubmit({cik:cik});
+          React.findDOMNode(this.refs.cik).value = cik;
+          return;
+        },
+        render: function() {
+          return (
+            <form className="noteForm" onSubmit={this.handleSubmit}>
+              <input type="text" placeholder="Enter cik" ref="cik" />
+              <input type="submit" value="Filter" />
+            </form>
+          );
+        }
+      });
       var NoteBox = React.createClass({
         loadNotesFromServer: function() {
-        // TODO add ability to filter by company and date
-        // TODO will need to page this eventually
+        // TODO add ability to filter by date
+        // TODO will need to page (or infinite scroll) this eventually
           $.ajax({
             url: 'note',
             dataType: 'json',
@@ -97,8 +118,11 @@
           }.bind(this)
         });
         },
+        handleFilterSubmit: function(data) {
+          this.setState({cikFilter: data.cik});
+        },
         getInitialState: function() {
-          return {data: []};
+          return {data: [], cikFilter: ''};
         },
         componentDidMount: function() {
           this.loadNotesFromServer();
@@ -110,7 +134,8 @@
           return (
             <div className="noteBox">
               <NoteForm onNoteSubmit={this.handleNoteSubmit}/>
-              <NoteList data={this.state.data}/>
+              <NoteFilter onNoteFilterSubmit={this.handleFilterSubmit}/>
+              <NoteList data={this.state.data} cikFilter={this.state.cikFilter}/>
             </div>
           );
         }
