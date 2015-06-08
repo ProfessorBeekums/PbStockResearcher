@@ -60,3 +60,9 @@ create table notes(
 , PRIMARY KEY (note_id)
 , KEY(cik)
 ) ENGINE=INNODB;
+
+create table note_filters(
+  note_filter_id int unsigned auto_increment
+, cik bigint unsigned not null
+, PRIMARY KEY (note_filter_id)
+) ENGINE=INNODB;

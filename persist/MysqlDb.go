@@ -10,7 +10,7 @@ import (
 
 var driver = "mysql"
 
-// will implement all interfaces in the persist package
+// TODO abandon this pattern and move functions into appropriate domains
 type MysqlPbStockResearcher struct {
 	user, pass, table string
 	conn              *sql.DB

@@ -27,6 +27,7 @@ var templateLock = new(sync.RWMutex)
 var templates *template.Template
 
 var noteManager *notes.NoteManager
+var noteFilterManager *notes.NoteFilterManager
 
 func loadTemplates() {
 	parsedTemplates, parseErr := template.ParseFiles("ui/index.html")
@@ -91,6 +92,47 @@ func postNotes(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getNoteFilters(w http.ResponseWriter, r *http.Request) {
+	noteMap := noteFilterManager.GetNoteFilters()
+	noteArray := make([]*notes.NoteFilter, len(noteMap))
+
+	index := 0
+
+	for _, note := range noteMap {
+		noteArray[index] = note
+		index++
+	}
+
+	jsonData, err := json.Marshal(noteArray)
+
+	if err != nil {
+		fmt.Fprintln(w, "ERROR encoding json data: ", err)
+	} else {
+		fmt.Fprintln(w, string(jsonData))
+	}
+}
+
+func postNoteFilters(w http.ResponseWriter, r *http.Request) {
+	cikVal := r.FormValue("cik")
+
+	cik, parseErr := strconv.Atoi(cikVal)
+
+	if parseErr != nil {
+		fmt.Fprintln(w, "ERROR parsing cik: ", parseErr)
+		return
+	}
+
+	noteFilterObj := noteFilterManager.AddNoteFilter(int64(cik))
+
+	jsonData, err := json.Marshal(noteFilterObj)
+
+	if err != nil {
+		fmt.Fprintln(w, "ERROR encoding json data: ", err)
+	} else {
+		fmt.Fprintln(w, string(jsonData))
+	}
+}
+
 func main() {
 	log.Println("Starting web server...")
 
@@ -108,7 +150,6 @@ func main() {
 	    for {
 	    	time.Sleep(2 * time.Second)
 		    loadTemplates()
-		    log.Println("Templates Reloaded")
 		}
 	}()
 
@@ -117,7 +158,11 @@ func main() {
 	registerHttpHandler("note", HttpMethodGet, getNotes)
 	registerHttpHandler("note", HttpMethodPost, postNotes)
 
+	registerHttpHandler("note-filter", HttpMethodGet, getNoteFilters)
+	registerHttpHandler("note-filter", HttpMethodPost, postNoteFilters)
+
 	noteManager = notes.GetNewNoteManager(mysql)
+	noteFilterManager = notes.GetNewNoteFilterManager(mysql)
 
 	http.ListenAndServe(":4000", nil)
 }
