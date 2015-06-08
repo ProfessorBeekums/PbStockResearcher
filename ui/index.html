@@ -13,6 +13,7 @@
       .noteList {
         padding-left: 10px;
         float: left;
+        width: 500px;
       }
     </style>
   </head>
@@ -47,7 +48,8 @@
           var noteList = this.props.data.map(function(note) {
             if(cikFilter == '' || note.CIK == cikFilter) {
               return (
-                <NoteElement key={note.NoteId} cik={note.CIK} company={note.CompanyName} note={note.Note} timestamp={note.Timestamp}/>
+                <NoteElement key={note.NoteId} cik={note.CIK} company={note.CompanyName} note={note.Note}
+                timestamp={note.Timestamp}/>
               );
             }
           });
@@ -115,7 +117,8 @@
           var filterClickFunction = this.onFilterClicked;
           var filterList = this.props.filters.map(function(filter) {
             return (
-              <NoteFilterElement key={filter.CompanyName} company={filter.CompanyName} cik={filter.CIK} onFilterClicked={filterClickFunction}/>
+              <NoteFilterElement key={filter.CompanyName} company={filter.CompanyName} cik={filter.CIK}
+              onFilterClicked={filterClickFunction}/>
             );
           });
           return (
@@ -205,7 +208,8 @@
             <div className="noteBox">
               <div className="noteControls">
                 <NoteForm onNoteSubmit={this.handleNoteSubmit}/>
-                <NoteFilter filters={this.state.savedFilters} onNoteFilterSubmit={this.handleFilterSubmit} onAddFilterClick={this.handleAddFilterClick}/>
+                <NoteFilter filters={this.state.savedFilters} onNoteFilterSubmit={this.handleFilterSubmit}
+                onAddFilterClick={this.handleAddFilterClick}/>
               </div>
               <div className="noteList">
                 <NoteList data={this.state.data} cikFilter={this.state.cikFilter}/>
