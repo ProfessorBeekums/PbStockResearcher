@@ -1,4 +1,16 @@
 Since this is an early stage project, I decided to write a development log instead of a change log. The history of every design and feature decision will be described here.
+2015-06-07
+This project started with wanting a screener to help find new stocks to invest in. That's still the case, but it'll still
+be months before the screener is in a state where I can get real value from it (assuming I can find more time to work on
+it than I have so far). What I do need today is a tailored way to hold my notes on various companies. This is both for
+keeping track of companies I have positions in AND companies on my watchlist. It's good having the current state of my
+mind persisted since emotions can affect my memories of what I thought about a company months ago. Also, it's nice
+having a summary of the research I've done instead of having to find the sources again.
+I'm sure there is already a product that could have done a basic note taking feature with filters. Building it myself
+however gave me a few advantages. First, it gives me an excuse to spend more time doing front end since this will be
+more front end heavy than the screener. Second, once the scraper and parser are more useful, I can start creating better
+dashboards with scraped data and my own data.
+
 2015-05-09
 I may need to reconsider how the persisters are done. At first I designed it that way to make it easier to switch data
 stores. I don't think I need to be able to do that anymore. Creating notes uses a newer pattern that I think I'd prefer.
