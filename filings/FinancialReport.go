@@ -94,7 +94,9 @@ func (brfnl *BasicRawFieldNameList) GetInt64RawFieldNames() []string {
 	return []string{
 		"Revenues",
 		"SalesRevenueNet",
+		"SalesRevenueGoodsNet",
 		"CostsAndExpenses",
+		"CostOfGoodsSold",
 		"OperatingExpenses",
 		"NetIncomeLoss",
 
@@ -125,11 +127,12 @@ type BasicRawToScreenableMapping struct{}
 func (brtsm *BasicRawToScreenableMapping) GetRawToScreenableMapping(fr *FinancialReport) map[*int64][][]string {
 	var mapping map[*int64][][]string = make(map[*int64][][]string)
 
-	mapping[&fr.Revenue] = [][]string{{"Revenues"}, {"SalesRevenueNet"}}
+	mapping[&fr.Revenue] = [][]string{{"Revenues"}, {"SalesRevenueNet"}, {"SalesRevenueGoodsNet"}}
 	mapping[&fr.OperatingExpense] =
 		[][]string{{"CostsAndExpenses"},
 			{"OperatingExpenses"},
-			{"CostOfGoodsAndServicesSold"}}
+			{"CostOfGoodsAndServicesSold"},
+			{"CostOfGoodsSold"}}
 	mapping[&fr.NetIncome] = [][]string{{"NetIncomeLoss"}}
 
 	mapping[&fr.CurrentAssets] = [][]string{{"AssetsCurrent"}}

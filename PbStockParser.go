@@ -38,6 +38,8 @@ func main() {
 	for done == false {
 		unparsedFiles := mysqlPersister.GetNextUnparsedFiles(batchLimit)
 
+		log.Println("Found this many unparsed files for batch: ", len(*unparsedFiles))
+
 		if len(*unparsedFiles) == 0 {
 			break
 		}
@@ -77,11 +79,11 @@ func main() {
 			frValid := fr.IsValid()
 
 			if frValid == nil {
-				//log.Println("Parsed report for CIK <", fr.CIK, "> year <", fr.Year, "> quarter <", fr.Quarter, ">")
+				log.Println("Parsed report for CIK <", fr.CIK, "> year <", fr.Year, "> quarter <", fr.Quarter, ">")
 				mysqlPersister.InsertUpdateFinancialReport(fr)
 				numValid++
 			} else {
-				//log.Error("Invalid financial report <", reportFile, "> with error: ", frValid)
+				log.Error("Invalid financial report <", reportFile, "> with error: ", frValid)
 				reportFile.ParseError = true
 
 				// TODO temporary while I figure out what my parsing code is missing

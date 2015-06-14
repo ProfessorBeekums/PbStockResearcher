@@ -296,7 +296,7 @@ func (mysql *MysqlPbStockResearcher) GetRawReport(cik, year, quarter int64) *fil
 
 	if err != nil {
 		log.Error("Couldn't retrieve unparsed report files")
-		return rawReport
+		return nil
 	}
 
 	for rows.Next() {

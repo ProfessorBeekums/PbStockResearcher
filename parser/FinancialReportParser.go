@@ -9,6 +9,7 @@ import (
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
 	"github.com/ProfessorBeekums/PbStockResearcher/persist"
 	"io"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -122,7 +123,7 @@ func (frp *FinancialReportParser) GetFinancialReport() *filings.FinancialReport 
 				}
 			}
 
-			if fieldVal > fieldValToUse {
+			if math.Abs(float64(fieldVal)) > math.Abs(float64(fieldValToUse)) {
 				fieldValToUse = fieldVal
 			}
 		}
@@ -343,6 +344,7 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 				return
 			} else if bestContext.name == newContext.name {
 				elementToUse = parsedElement
+				log.Println("@@@@ for tag name ", tagName, " using best context of ", bestContext, " and found value of ", elementToUse.value)
 			}
 		}
 	}
@@ -362,6 +364,7 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 			previousFr := frp.persister.GetRawReport(frp.financialReportRaw.CIK, prevYear, prevQuarter)
 			periodMonths = periodMonths - 3
 
+			log.Println("@@@@ found previous fr ", previousFr)
 			if previousFr == nil {
 				//log.Error("Could not calculate <", tagName, "> for CIK <", frp.financialReportRaw.CIK,
 				//	"> and year <", frp.financialReportRaw.Year, "> and quarter <", frp.financialReportRaw.Quarter,
@@ -375,7 +378,7 @@ func parseInt64Field(frp *FinancialReportParser, listOfElementLists *list.List) 
 			} else {
 				log.Error("Could not calculate <", tagName, "> for CIK <", frp.financialReportRaw.CIK,
 					"> and year <", frp.financialReportRaw.Year, "> and quarter <", frp.financialReportRaw.Quarter,
-					"> because missing tag name")
+					"> because missing tag name for context: ", elementToUse.context)
 				break
 			}
 		}
