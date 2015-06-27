@@ -164,6 +164,10 @@ func main() {
 	noteManager = notes.GetNewNoteManager(mysql)
 	noteFilterManager = notes.GetNewNoteFilterManager(mysql)
 
+	// handle assets
+	http.Handle("/ui/js/", http.StripPrefix("/ui/js/", http.FileServer(http.Dir("ui/js/"))))
+	http.Handle("/ui/css/", http.StripPrefix("/ui/css/", http.FileServer(http.Dir("ui/css/"))))
+
 	http.ListenAndServe(":4000", nil)
 }
 

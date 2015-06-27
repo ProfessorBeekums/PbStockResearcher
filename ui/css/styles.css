@@ -1,0 +1,9 @@
+.noteControls {
+    float: left;
+}
+
+.noteList {
+    padding-left: 10px;
+    float: left;
+    width: 500px;
+}
