@@ -74,6 +74,7 @@ render: function() {
   );
 }
 });
+
 var NoteFilter = React.createClass({
 handleSubmit: function(e) {
   e.preventDefault();
@@ -113,6 +114,47 @@ render: function() {
   );
 }
 });
+
+var AddCompanyForm = React.createClass({
+handleSubmit: function(e) {
+  e.preventDefault();
+  var cik = React.findDOMNode(this.refs.cik).value.trim();
+  var company = React.findDOMNode(this.refs.company).value.trim();
+  if (!company || !cik) {
+    return;
+  }
+  this.props.onAddCompanySubmit({cik:cik, company:company});
+  React.findDOMNode(this.refs.cik).value = '';
+  React.findDOMNode(this.refs.company).value = '';
+  return;
+},
+render: function() {
+  return (
+    <form className="add-company-form" onSubmit={this.handleSubmit}>
+      Add a new company
+      <br/>
+      <input type="text" placeholder="Enter cik" ref="cik" />
+      <input type="text" placeholder="Enter company name" ref="company" />
+      <input type="submit" value="Post" />
+    </form>
+  );
+}
+});
+
+var NoteFilterElement = React.createClass({
+filterClicked: function(e) {
+  var cik = this.props.cik;
+  this.props.onFilterClicked({cik: cik});
+},
+render: function() {
+  return (
+    <p onClick={this.filterClicked}>
+      {this.props.company}
+    </p>
+  );
+}
+});
+
 var NoteBox = React.createClass({
 loadNotesFromServer: function() {
 // TODO add ability to filter by date
@@ -173,6 +215,19 @@ $.ajax({
   }.bind(this)
 });
 },
+handleAddCompanySubmit: function(companyData) {
+$.ajax({
+  url: 'company',
+  dataType: 'json',
+  type: 'POST',
+  data: companyData,
+  success: function(data) {
+  }.bind(this),
+  error: function(xhr, status, err) {
+    console.error(this.props.url, status, err.toString());
+  }.bind(this)
+});
+},
 getInitialState: function() {
   return {data: [], cikFilter: '', savedFilters: []};
 },
@@ -192,11 +247,14 @@ render: function() {
       <div className="noteList">
         <NoteList data={this.state.data} cikFilter={this.state.cikFilter}/>
       </div>
+      <div className="addCompanyForm">
+        <AddCompanyForm onAddCompanySubmit={this.handleAddCompanySubmit}/>
+      </div>
     </div>
   );
 }
 });
 React.render(
     <NoteBox />,
-    document.getElementById('content')
+    document.getElementById('notes-main')
 );

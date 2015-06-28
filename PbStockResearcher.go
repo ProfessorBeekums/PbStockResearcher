@@ -13,6 +13,7 @@ import (
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
 	"github.com/ProfessorBeekums/PbStockResearcher/notes"
 	"github.com/ProfessorBeekums/PbStockResearcher/persist"
+	"github.com/ProfessorBeekums/PbStockResearcher/filings"
 )
 
 const HttpMethodGet = "GET"
@@ -28,6 +29,7 @@ var templates *template.Template
 
 var noteManager *notes.NoteManager
 var noteFilterManager *notes.NoteFilterManager
+var mysql *persist.MysqlPbStockResearcher
 
 func loadTemplates() {
 	parsedTemplates, parseErr := template.ParseFiles("ui/index.html")
@@ -61,13 +63,7 @@ func getNotes(w http.ResponseWriter, r *http.Request) {
 		index++
 	}
 
-	jsonData, err := json.Marshal(noteArray)
-
-	if err != nil {
-		fmt.Fprintln(w, "ERROR encoding json data: ", err)
-	} else {
-		fmt.Fprintln(w, string(jsonData))
-	}
+	returnJson(w, noteArray)
 }
 
 func postNotes(w http.ResponseWriter, r *http.Request) {
@@ -103,13 +99,7 @@ func getNoteFilters(w http.ResponseWriter, r *http.Request) {
 		index++
 	}
 
-	jsonData, err := json.Marshal(noteArray)
-
-	if err != nil {
-		fmt.Fprintln(w, "ERROR encoding json data: ", err)
-	} else {
-		fmt.Fprintln(w, string(jsonData))
-	}
+	returnJson(w, noteArray)
 }
 
 func postNoteFilters(w http.ResponseWriter, r *http.Request) {
@@ -133,6 +123,23 @@ func postNoteFilters(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func addCompany(w http.ResponseWriter, r *http.Request) {
+	cikVal := r.FormValue("cik")
+	companyVal := r.FormValue("company")
+
+	cik, parseErr := strconv.Atoi(cikVal)
+
+	if parseErr != nil {
+		fmt.Fprintln(w, "ERROR parsing cik: ", parseErr)
+		return
+	}
+
+	company := &filings.Company{CIK:int64(cik), Name:companyVal}
+	mysql.InsertUpdateCompany(company)
+
+	returnJson(w, company)
+}
+
 func main() {
 	log.Println("Starting web server...")
 
@@ -140,7 +147,7 @@ func main() {
 
 	log.Println("Loaded config: ", c)
 
-	mysql := persist.NewMysqlDb(c.MysqlUser, c.MysqlPass, c.MysqlDb)
+	mysql = persist.NewMysqlDb(c.MysqlUser, c.MysqlPass, c.MysqlDb)
 
 	loadTemplates()
 
@@ -161,6 +168,8 @@ func main() {
 	registerHttpHandler("note-filter", HttpMethodGet, getNoteFilters)
 	registerHttpHandler("note-filter", HttpMethodPost, postNoteFilters)
 
+	registerHttpHandler("company", HttpMethodPost, addCompany)
+
 	noteManager = notes.GetNewNoteManager(mysql)
 	noteFilterManager = notes.GetNewNoteFilterManager(mysql)
 
@@ -169,6 +178,16 @@ func main() {
 	http.Handle("/ui/css/", http.StripPrefix("/ui/css/", http.FileServer(http.Dir("ui/css/"))))
 
 	http.ListenAndServe(":4000", nil)
+}
+
+func returnJson(w http.ResponseWriter, response interface{}) {
+	jsonData, err := json.Marshal(response)
+
+	if err != nil {
+		fmt.Fprintln(w, "ERROR encoding json data: ", err)
+	} else {
+		fmt.Fprintln(w, string(jsonData))
+	}
 }
 
 func registerHttpHandler(uri, httpMethod string, handlerFunc func(w http.ResponseWriter, r *http.Request)) {
