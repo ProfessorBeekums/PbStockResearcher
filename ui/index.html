@@ -9,5 +9,12 @@
   <body>
     <div id="notes-main"></div>
     <script src="/ui/js/notes.js" type="text/jsx"></script>
+    <script type="text/jsx">
+      React.render(
+        <NoteBox />,
+        document.getElementById('notes-main')
+      );
+    </script>
+
   </body>
 </html>

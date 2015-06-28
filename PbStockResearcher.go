@@ -32,7 +32,7 @@ var noteFilterManager *notes.NoteFilterManager
 var mysql *persist.MysqlPbStockResearcher
 
 func loadTemplates() {
-	parsedTemplates, parseErr := template.ParseFiles("ui/index.html")
+	parsedTemplates, parseErr := template.ParseFiles("ui/index.html", "ui/companyDash.html")
 
 	if parseErr == nil {
 		templateLock.Lock()
@@ -44,9 +44,18 @@ func loadTemplates() {
 }
 
 func handleMainPage(w http.ResponseWriter, r *http.Request) {
+	handleTemplate(w, r, "index.html");
+}
+
+func handleCompanyDash(w http.ResponseWriter, r *http.Request) {
+	// TODO this will need to read the cik and start a filter
+	handleTemplate(w, r, "companyDash.html")
+}
+
+func handleTemplate(w http.ResponseWriter, r *http.Request, templateFile string) {
 	templateLock.RLock()
 	defer templateLock.RUnlock()
-	err := templates.ExecuteTemplate(w, "index.html", nil)
+	err := templates.ExecuteTemplate(w, templateFile, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -140,6 +149,25 @@ func addCompany(w http.ResponseWriter, r *http.Request) {
 	returnJson(w, company)
 }
 
+func getCompanyData(w http.ResponseWriter, r *http.Request) {
+	cikVal := r.FormValue("cik")
+
+	cik, parseErr := strconv.Atoi(cikVal)
+
+	if parseErr != nil {
+		fmt.Fprintln(w, "ERROR parsing cik: ", parseErr)
+		return
+	}
+
+	// TODO this seems silly, but only for now!
+	company := mysql.GetCompany(int64(cik))
+	returnMap := make(map[string]string)
+
+	returnMap["name"] = company.Name
+
+	returnJson(w, returnMap)
+}
+
 func main() {
 	log.Println("Starting web server...")
 
@@ -161,6 +189,7 @@ func main() {
 	}()
 
 	http.HandleFunc("/", handleMainPage)
+	http.HandleFunc("/companyDash", handleCompanyDash)
 
 	registerHttpHandler("note", HttpMethodGet, getNotes)
 	registerHttpHandler("note", HttpMethodPost, postNotes)
@@ -169,6 +198,7 @@ func main() {
 	registerHttpHandler("note-filter", HttpMethodPost, postNoteFilters)
 
 	registerHttpHandler("company", HttpMethodPost, addCompany)
+	registerHttpHandler("company", HttpMethodGet, getCompanyData)
 
 	noteManager = notes.GetNewNoteManager(mysql)
 	noteFilterManager = notes.GetNewNoteFilterManager(mysql)

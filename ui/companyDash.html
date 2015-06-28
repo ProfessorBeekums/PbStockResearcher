@@ -1,0 +1,22 @@
+<html>
+<head>
+  <title>PbStockResearcher</title>
+  <script src="https://fb.me/react-0.13.2.js"></script>
+  <script src="https://fb.me/JSXTransformer-0.13.2.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+  <link href="/ui/css/styles.css" rel="stylesheet">
+</head>
+<body>
+  <div id="companyDash"></div>
+  <script src="/ui/js/notes.js" type="text/jsx"></script>
+  <script src="/ui/js/companyDash.js" type="text/jsx"></script>
+  <!-- TODO need to load filter from go code-->
+  <script type="text/jsx">
+    React.render(
+      <CompanyDash />,
+      document.getElementById('companyDash')
+    );
+  </script>
+
+</body>
+</html>

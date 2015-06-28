@@ -157,19 +157,7 @@ render: function() {
 
 var NoteBox = React.createClass({
 loadNotesFromServer: function() {
-// TODO add ability to filter by date
-// TODO will need to page (or infinite scroll) this eventually
-  $.ajax({
-    url: 'note',
-    dataType: 'json',
-    cache: false,
-    success: function(data) {
-      this.setState({data: data});
-    }.bind(this),
-    error: function(xhr, status, err) {
-      console.error(this.props.url, status, err.toString());
-    }.bind(this)
-  });
+  getNoteList(this.setState.bind(this))
 },
 handleNoteSubmit: function(noteData) {
 $.ajax({
@@ -254,7 +242,19 @@ render: function() {
   );
 }
 });
-React.render(
-    <NoteBox />,
-    document.getElementById('notes-main')
-);
+
+function getNoteList(successCallback) {
+// TODO add ability to filter by date
+// TODO will need to page (or infinite scroll) this eventually
+  $.ajax({
+    url: 'note',
+    dataType: 'json',
+    cache: false,
+    success: function(data) {
+      successCallback({data: data});
+    },
+    error: function(xhr, status, err) {
+      console.error(this.props.url, status, err.toString());
+    }
+  });
+}
