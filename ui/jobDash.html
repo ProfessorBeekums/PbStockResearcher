@@ -1,0 +1,19 @@
+<html>
+  <head>
+    <title>PbStockResearcher</title>
+    <script src="https://fb.me/react-0.13.2.js"></script>
+    <script src="https://fb.me/JSXTransformer-0.13.2.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+    <link href="/ui/css/styles.css" rel="stylesheet">
+  </head>
+  <body>
+    <div id="jobDash"></div>
+    <script src="/ui/js/jobDash.js" type="text/jsx"></script>
+    <script type="text/jsx">
+      React.render(
+        <JobDash />,
+        document.getElementById('jobDash')
+      );
+    </script>
+  </body>
+</html>
