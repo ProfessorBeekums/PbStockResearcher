@@ -1,10 +1,12 @@
 package jobs
 
 import (
+	"sync"
 	"testing"
+	"time"
 )
 
-func TestJobManager(t *testing.T) {
+func TestJobMap(t *testing.T) {
 	jm := GetJobManager()
 
 	jobMap := jm.GetJobs()
@@ -61,4 +63,44 @@ func TestJobManager(t *testing.T) {
 	if completedJob.EndTime == 0 {
 		t.Fatal("Job <", jobId1, "> was expected to have end time of 0")
 	}
+
+	if completedJob.JobId != jobId1 {
+		t.Fatal("Mismatched job id <", jobId1, "> and : ", completedJob.JobId)
+	}
+}
+
+func TestStartJob(t *testing.T) {
+	jm := GetJobManager()
+
+	jobMap := jm.GetJobs()
+
+	params := make(map[string]string)
+	params["param1"] = "123"
+
+	jobId := jm.StartJob(fakeJobFunc, "blar", params)
+
+	// not the best, but the ops are guaranteed fast since it's just setting a variable
+	time.Sleep(5 * time.Millisecond)
+
+	fakeParamLock.Lock()
+	if fakeParam != "123" {
+		t.Fatal("Job function was no executed by StartJob")
+	}
+	fakeParamLock.Unlock()
+
+	jobMap = jm.GetJobs()
+	completedJob := jobMap[jobId]
+
+	if completedJob.JobStatus != JobStatusDone {
+		t.Fatal("JobComplete was not executed by StartJob")
+	}
+}
+
+var fakeParamLock *sync.RWMutex = new(sync.RWMutex)
+var fakeParam string
+
+func fakeJobFunc(params map[string]string) {
+	fakeParamLock.Lock()
+	fakeParam = params["param1"]
+	fakeParamLock.Unlock()
 }
