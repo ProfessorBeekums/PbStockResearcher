@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const JobTypeScreener = "Screener"
+const JobTypeScraper = "Scraper"
 const JobTypeParser = "Parser"
 
 const JobStatusStarted = "Started"
