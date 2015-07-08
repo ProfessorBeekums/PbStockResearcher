@@ -14,7 +14,7 @@ var errorLogger *log.Logger
 func getErrorLogger() *log.Logger {
 	if errorLogger == nil {
 		// TODO allow configuring an error file here?
-		errorLogger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile) 
+		errorLogger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
 	return errorLogger

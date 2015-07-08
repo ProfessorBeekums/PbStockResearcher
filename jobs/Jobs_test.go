@@ -21,7 +21,7 @@ func TestJobMap(t *testing.T) {
 	params["param2"] = "456"
 
 	jobId1 := jm.AddJob("blar", params)
-	
+
 	// verify singleton
 	jm = GetJobManager()
 
@@ -42,7 +42,7 @@ func TestJobMap(t *testing.T) {
 	}
 
 	jm.AddJob("blar", params)
-	
+
 	jobMap = jm.GetJobs()
 
 	// verify multiple jobs

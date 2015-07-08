@@ -14,15 +14,15 @@ const JobStatusStarted = "Started"
 const JobStatusDone = "Done"
 
 type Job struct {
-	StartTime, EndTime int64
+	StartTime, EndTime        int64
 	JobId, JobType, JobStatus string
-	Params map[string]string
+	Params                    map[string]string
 }
 
-// Keeps track of running jobs in memory. No need to persist since jobs will only run in 
+// Keeps track of running jobs in memory. No need to persist since jobs will only run in
 // the single go process for now.
 type JobManager struct {
-	jobs map[string]*Job
+	jobs     map[string]*Job
 	jobsLock *sync.RWMutex
 }
 
@@ -42,8 +42,8 @@ func (jm *JobManager) GetJobs() map[string]*Job {
 	// need a copy to protect against races
 	jm.jobsLock.Lock()
 	mapCopy := make(map[string]*Job)
-	for k,v := range jm.jobs {
-	  mapCopy[k] = v
+	for k, v := range jm.jobs {
+		mapCopy[k] = v
 	}
 	jm.jobsLock.Unlock()
 	return mapCopy

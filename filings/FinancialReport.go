@@ -17,9 +17,9 @@ type FinancialReport struct {
 
 func (fr *FinancialReport) GetLogStr() string {
 	return "financial report cik <" + strconv.FormatInt(fr.CIK, 10) +
-			"> with year <" + strconv.FormatInt(fr.Year, 10) +
-			"> and quarter <" + strconv.FormatInt(fr.Quarter, 10) +
-			"> and report file id: " + strconv.FormatInt(fr.ReportFileId,10)
+		"> with year <" + strconv.FormatInt(fr.Year, 10) +
+		"> and quarter <" + strconv.FormatInt(fr.Quarter, 10) +
+		"> and report file id: " + strconv.FormatInt(fr.ReportFileId, 10)
 }
 
 func (fr *FinancialReport) IsValid() error {

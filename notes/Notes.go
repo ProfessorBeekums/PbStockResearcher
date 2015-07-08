@@ -1,19 +1,19 @@
 package notes
 
 import (
-	"time"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
 	"github.com/ProfessorBeekums/PbStockResearcher/persist"
+	_ "github.com/go-sql-driver/mysql"
+	"time"
 )
 
 type Note struct {
-	CompanyName, Note string
+	CompanyName, Note      string
 	NoteId, CIK, Timestamp int64
 }
 
 type NoteManager struct {
-	notes map[int64]*Note
+	notes     map[int64]*Note
 	persister *persist.MysqlPbStockResearcher
 }
 
@@ -50,7 +50,7 @@ func (nm *NoteManager) GetNotes() map[int64]*Note {
 }
 
 func (nm *NoteManager) AddNote(cik int64, note string) *Note {
-	company := nm.persister.GetCompany(cik);
+	company := nm.persister.GetCompany(cik)
 
 	currentTime := time.Now().Unix()
 	noteObj := &Note{CIK: company.CIK, CompanyName: company.Name, Note: note, Timestamp: currentTime}
@@ -72,7 +72,7 @@ func (nm *NoteManager) AddNote(cik int64, note string) *Note {
 			" because: ", err)
 		noteObj = nil
 	} else {
-//		nm.notes[noteObj.NoteId] = noteObj
+		//		nm.notes[noteObj.NoteId] = noteObj
 	}
 
 	return noteObj

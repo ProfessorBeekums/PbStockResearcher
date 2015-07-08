@@ -15,8 +15,8 @@ func (rf *ReportFile) GetLogStr() string {
 	return "report file cik <" + strconv.FormatInt(rf.CIK, 10) +
 		"> with year <" + strconv.FormatInt(rf.Year, 10) +
 		"> and quarter <" + strconv.FormatInt(rf.Quarter, 10) +
-		"> and file path <" + rf.Filepath + "> and report file id: " + 
-		strconv.FormatInt(rf.ReportFileId,10)
+		"> and file path <" + rf.Filepath + "> and report file id: " +
+		strconv.FormatInt(rf.ReportFileId, 10)
 }
 
 //func (rf *ReportFile) IsFinancialReport() {

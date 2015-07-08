@@ -1,19 +1,19 @@
 package notes
 
 import (
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
 	"github.com/ProfessorBeekums/PbStockResearcher/persist"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type NoteFilter struct {
-	CompanyName string
+	CompanyName       string
 	NoteFilterId, CIK int64
 }
 
 type NoteFilterManager struct {
 	noteFilters map[int64]*NoteFilter
-	persister *persist.MysqlPbStockResearcher
+	persister   *persist.MysqlPbStockResearcher
 }
 
 func GetNewNoteFilterManager(persister *persist.MysqlPbStockResearcher) *NoteFilterManager {
@@ -48,7 +48,7 @@ func (nm *NoteFilterManager) GetNoteFilters() map[int64]*NoteFilter {
 }
 
 func (nm *NoteFilterManager) AddNoteFilter(cik int64) *NoteFilter {
-	company := nm.persister.GetCompany(cik);
+	company := nm.persister.GetCompany(cik)
 
 	noteFilterObj := &NoteFilter{CIK: company.CIK}
 

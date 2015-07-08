@@ -52,7 +52,7 @@ func main() {
 		var numInvalid int64 = 0
 		for _, reportFile := range *unparsedFiles {
 			if reportFile.CIK == 0 {
-				return;
+				return
 			}
 			filePath := reportFile.Filepath
 			if !strings.Contains(filePath, "10-Q") &&

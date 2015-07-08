@@ -1,9 +1,9 @@
 package web
 
 import (
+	"github.com/ProfessorBeekums/PbStockResearcher/jobs"
 	"net/http"
 	"time"
-	"github.com/ProfessorBeekums/PbStockResearcher/jobs"
 	// "github.com/ProfessorBeekums/PbStockResearcher/log"
 )
 

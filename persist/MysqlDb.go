@@ -160,7 +160,7 @@ func (mysql *MysqlPbStockResearcher) GetNextUnparsedFiles(numToGet int64) *[]fil
 		newReportFile := filings.ReportFile{}
 
 		rows.Scan(&newReportFile.ReportFileId, &newReportFile.CIK, &newReportFile.Year,
-		&newReportFile.Quarter, &newReportFile.Filepath, &newReportFile.FormType)
+			&newReportFile.Quarter, &newReportFile.Filepath, &newReportFile.FormType)
 
 		reportFiles[lastIndex] = newReportFile
 		lastIndex++
@@ -176,7 +176,6 @@ func (mysql *MysqlPbStockResearcher) GetNextUnparsedFiles(numToGet int64) *[]fil
 
 	return &reportFiles
 }
-
 
 func (mysql *MysqlPbStockResearcher) InsertUpdateFinancialReport(fr *filings.FinancialReport) {
 	result, err := mysql.conn.Exec(
@@ -226,9 +225,10 @@ func (mysql *MysqlPbStockResearcher) InsertUpdateFinancialReport(fr *filings.Fin
 			log.Error("Failed to get last insert id for ",
 				fr.GetLogStr(), " because: ", insertErr)
 		}
-		fr.FinancialReportId= lastInsertId
+		fr.FinancialReportId = lastInsertId
 	}
 }
+
 //func (mysql *MysqlPbStockResearcher) GetFinancialReport(cik, year, quarter int64) *filings.FinancialReport {
 //	// TODO unused for now
 //	return nil
@@ -238,16 +238,16 @@ func (mysql *MysqlPbStockResearcher) InsertUpdateRawReport(rawReport *filings.Fi
 	numFields := len(rawReport.RawFields)
 
 	if numFields < 1 {
-		return;
+		return
 	}
 
 	// create a new financial report to grab the primary key
 	fr := &filings.FinancialReport{CIK: rawReport.CIK, Year: rawReport.Year, Quarter: rawReport.Quarter}
 	mysql.InsertUpdateFinancialReport(fr)
 
-	args := make([]interface {}, numFields * 3)
+	args := make([]interface{}, numFields*3)
 	query :=
-	`INSERT INTO financial_report_raw_fields (financial_report_id, field_name, field_value) VALUES `
+		`INSERT INTO financial_report_raw_fields (financial_report_id, field_name, field_value) VALUES `
 
 	dbArgs := make([]string, numFields)
 
@@ -316,13 +316,14 @@ func (mysql *MysqlPbStockResearcher) GetRawReport(cik, year, quarter int64) *fil
 // Using an implicit limit of 5000 in each query because if it's more than 5000, it's not a very good screen.
 // Also... I don't want to deal with the performance of it being higher
 const MAX_SCREEN_RESULTS = 5000
+
 func (mysql *MysqlPbStockResearcher) GetRatio(ratioQuery string, year, quarter int, min, max float64) map[*filings.Company]float64 {
 	query := "SELECT c.cik, c.name, " + ratioQuery + ` as ratio
 				FROM financial_report fr
 				JOIN company c on c.cik = fr.cik
 				WHERE year = ? AND quarter = ? AND ` +
-					ratioQuery + " > ? AND " +
-					ratioQuery + ` < ?
+		ratioQuery + " > ? AND " +
+		ratioQuery + ` < ?
 				ORDER BY ratio DESC
 				LIMIT ?`
 
@@ -355,4 +356,5 @@ func (mysql *MysqlPbStockResearcher) ScreenAssetRatio(year, quarter int, min, ma
 func (mysql *MysqlPbStockResearcher) ScreenCurrentRatio(year, quarter int, min, max float64) map[*filings.Company]float64 {
 	return mysql.GetRatio("current_assets / (total_liabilities + current_assets)", year, quarter, min, max)
 }
+
 ////////////////////////////////END Screener Functions////////////////////////////////////////////

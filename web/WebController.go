@@ -3,12 +3,14 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ProfessorBeekums/PbStockResearcher/log"
+	"github.com/ProfessorBeekums/PbStockResearcher/notes"
+	"github.com/ProfessorBeekums/PbStockResearcher/persist"
 	"html/template"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
-	"github.com/ProfessorBeekums/PbStockResearcher/log"
 )
 
 const HttpMethodGet = "GET"
@@ -21,6 +23,10 @@ var routeMaps map[string]*methodMap
 
 var templateLock = new(sync.RWMutex)
 var templates *template.Template
+
+var noteManager *notes.NoteManager
+var noteFilterManager *notes.NoteFilterManager
+var mysql *persist.MysqlPbStockResearcher
 
 func loadTemplates() {
 	parsedTemplates, parseErr := template.ParseFiles("ui/index.html", "ui/companyDash.html", "ui/jobDash.html")
@@ -43,16 +49,22 @@ func HandleTemplate(w http.ResponseWriter, r *http.Request, templateFile string)
 	}
 }
 
-func StartWebServer() {
+func StartWebServer(newMysql *persist.MysqlPbStockResearcher,
+	newNoteManager *notes.NoteManager,
+	newNoteFilterManager *notes.NoteFilterManager) {
 	log.Println("Starting web server...")
 	loadTemplates()
+
+	mysql = newMysql
+	noteManager = newNoteManager
+	noteFilterManager = newNoteFilterManager
 
 	go func() {
 		// TODO replace with fs-notify after updating go to 1.5
 		// https://github.com/go-fsnotify/fsnotify/blob/master/example_test.go
-	    for {
-	    	time.Sleep(2 * time.Second)
-		    loadTemplates()
+		for {
+			time.Sleep(2 * time.Second)
+			loadTemplates()
 		}
 	}()
 
