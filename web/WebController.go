@@ -76,6 +76,16 @@ func StartWebServer(newMysql *persist.MysqlPbStockResearcher,
 	http.ListenAndServe(":4000", nil)
 }
 
+func ReturnJsonSuccess(w http.ResponseWriter) {
+	jsonData, err := json.Marshal("success")
+
+	if err != nil {
+		fmt.Fprintln(w, "ERROR encoding json data: ", err)
+	} else {
+		fmt.Fprintln(w, string(jsonData))
+	}
+}
+
 func ReturnJson(w http.ResponseWriter, response interface{}) {
 	jsonData, err := json.Marshal(response)
 
