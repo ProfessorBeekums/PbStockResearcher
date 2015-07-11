@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"github.com/ProfessorBeekums/PbStockResearcher/tmpStore"
 )
 
 const HttpMethodGet = "GET"
@@ -27,6 +28,7 @@ var templates *template.Template
 var noteManager *notes.NoteManager
 var noteFilterManager *notes.NoteFilterManager
 var mysql *persist.MysqlPbStockResearcher
+var ts *tmpStore.TempStore
 
 func loadTemplates() {
 	parsedTemplates, parseErr := template.ParseFiles("ui/index.html", "ui/companyDash.html", "ui/jobDash.html")
@@ -51,13 +53,15 @@ func HandleTemplate(w http.ResponseWriter, r *http.Request, templateFile string)
 
 func StartWebServer(newMysql *persist.MysqlPbStockResearcher,
 	newNoteManager *notes.NoteManager,
-	newNoteFilterManager *notes.NoteFilterManager) {
+	newNoteFilterManager *notes.NoteFilterManager,
+	newTs *tmpStore.TempStore) {
 	log.Println("Starting web server...")
 	loadTemplates()
 
 	mysql = newMysql
 	noteManager = newNoteManager
 	noteFilterManager = newNoteFilterManager
+	ts = newTs
 
 	go func() {
 		// TODO replace with fs-notify after updating go to 1.5

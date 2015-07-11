@@ -3,10 +3,10 @@ package web
 import (
 	"github.com/ProfessorBeekums/PbStockResearcher/jobs"
 	"net/http"
-	"time"
 	// "github.com/ProfessorBeekums/PbStockResearcher/log"
-//	"strconv"
-//	"fmt"
+	"strconv"
+	"github.com/ProfessorBeekums/PbStockResearcher/scraper"
+	"github.com/ProfessorBeekums/PbStockResearcher/log"
 )
 
 func getJobsData(w http.ResponseWriter, r *http.Request) {
@@ -36,16 +36,19 @@ func startScraperJob(w http.ResponseWriter, r *http.Request) {
 }
 
 func scraperJobFunc(params map[string]string) {
-	// TODO call actual scraper
+	yearStr,_ := params["year"]
+	quarterStr,_ := params["quarter"]
+	year, yearParseErr := strconv.Atoi(yearStr)
+	quarter, quarterParseErr := strconv.Atoi(quarterStr)
 
-//	year, yearParseErr := strconv.Itoa(yearStr)
-//	quarter, quarterParseErr := strconv.Itoa(quarterStr)
-//
-//	if yearParseErr || quarterParseErr {
-//		fmt.Fprintln(w, "ERROR parsing year or quarter: ", yearParseErr, quarterParseErr)
-//		return
-//	}
-	time.Sleep(60 * time.Second)
+	if yearParseErr != nil || quarterParseErr != nil {
+		log.Error("ERROR parsing year or quarter: ", yearParseErr, quarterParseErr)
+		return
+	}
+
+	pbScraper := scraper.NewEdgarFullIndexScraper(year, quarter, ts, mysql, mysql)
+
+	pbScraper.ScrapeEdgarQuarterlyIndex()
 }
 
 // func parserJobFunc

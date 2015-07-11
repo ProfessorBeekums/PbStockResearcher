@@ -21,7 +21,7 @@ var JobDash = React.createClass({
 	},
 	componentDidMount: function() {
 		this.loadJobsFromServer();
-
+		setInterval(this.loadJobsFromServer, 10000);
 	},
 	render: function() {
 		return (

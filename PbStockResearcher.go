@@ -2,11 +2,13 @@ package main
 
 import (
 	"github.com/ProfessorBeekums/PbStockResearcher/config"
+	"github.com/ProfessorBeekums/PbStockResearcher/jobs"
 	"github.com/ProfessorBeekums/PbStockResearcher/log"
 	"github.com/ProfessorBeekums/PbStockResearcher/notes"
 	"github.com/ProfessorBeekums/PbStockResearcher/persist"
 	"github.com/ProfessorBeekums/PbStockResearcher/web"
 	"net/http"
+	"github.com/ProfessorBeekums/PbStockResearcher/tmpStore"
 )
 
 func handleMainPage(w http.ResponseWriter, r *http.Request) {
@@ -30,6 +32,7 @@ func main() {
 	log.Println("Loaded config: ", c)
 
 	mysql := persist.NewMysqlDb(c.MysqlUser, c.MysqlPass, c.MysqlDb)
+	ts := tmpStore.NewTempStore(c.TmpDir)
 
 	http.HandleFunc("/", handleMainPage)
 	http.HandleFunc("/companyDash", handleCompanyDash)
@@ -42,5 +45,5 @@ func main() {
 	web.InitializeNotesEndpoints()
 	web.InitializeCompanyEndpoints()
 
-	web.StartWebServer(mysql, noteManager, noteFilterManager)
+	web.StartWebServer(mysql, noteManager, noteFilterManager, ts)
 }
